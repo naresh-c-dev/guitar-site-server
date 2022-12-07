@@ -28,7 +28,7 @@ const busboy = require('connect-busboy');
 const AuthenticationClient = require('auth0').AuthenticationClient;
 const ManagementClient = require('auth0').ManagementClient;
 const corsOptions = {
-    origin: 'http://localhost:3000',
+    origin: process.env.CORS_ORGIN,
     credentials: true, //access-control-allow-credentials:true
     optionSuccessStatus: 200
 }
