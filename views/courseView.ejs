@@ -1,0 +1,182 @@
+<%- include("partials/header")  %>
+
+<div class="flex-1 ml-40 bg-slate-200 h-100" id="page">
+    <div class="bg-emerald-400 p-8">
+        <h1 class="text-3xl text-white font-semibold ">Course</h1>
+    </div>
+    <div class="bg-white p-4 m-4 rounded-2xl">
+        <div class="ml-4 m-4 grid grid-cols-3 gap-3 bg-white p-4 rounded-2xl ">
+            <div class="flex items-center p-2">
+                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 ">
+                    Title
+                </p>
+                <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md " type="text"
+                    value="<%= locals.data.course_title   %>" readonly />
+            </div>
+            <div class="flex items-center p-2">
+                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 ">
+                    Features
+                </p>
+                <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md " type="text"
+                    value="<%= locals.data.course_features   %>" readonly />
+            </div>
+            <div class="flex items-center p-2">
+                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 ">
+                    Plan
+                </p>
+                <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md capitalize " type="text"
+                    value="<%= locals.data.subscription_plan   %>" readonly />
+            </div>
+        </div>
+    </div>
+    <div class="p-4 m-4  rounded-2xl drop-shadow-2xl">
+        <div class="bg-emerald-400 text-white rounded-2xl p-3 cursor-pointer hover:shadow-sm hover:shadow-black font-semibold " id="add-module-btn" onclick="addToggle()">
+            <span>Add New Module</span>
+        </div>
+        <div class="-mt-1 bg-white rounded-b-lg hidden" id="add-module" >
+              <div class="flex items-center p-2">
+                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 w-2/6 ">
+                    Module Title
+                </p>
+                <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md w-5/6 " name="title" type="text"
+                     required/>
+            </div>
+            <div class="flex items-center p-2">
+                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 w-2/6 ">
+                    Module Description
+                </p>
+                <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md w-5/6 " name="description" type="text"
+                    required/>
+            </div>
+            
+            <div class="flex items-center p-2">
+                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 w-2/6 ">
+                    Module Notes Title <span class="font-light">(optional)</span>
+                </p>
+                <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md w-5/6 " name="notes-title" type="text"
+                    />
+            </div>
+            <div class="flex items-center p-2">
+                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 w-2/6 ">
+                    Module Notes Link <span class="font-light">(optional)</span>
+                </p>
+                <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md w-5/6 " name="notes-link" type="text"
+                    />
+            </div>
+            <div class="flex items-center p-2">
+                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md h-10  -mr-1 w-2/6 ">
+                    Module Video
+                </p>
+                <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md h-10 w-5/6 " name="video" type="file" id="video-file"
+                   accept="video/*" required/>
+            </div>
+            <div class="p-2">
+                <input class="border-slate-900 border-2   px-2 focus:outline-none rounded-r-md text-3xl" name="notes-status" type="checkbox"
+                    required/>
+                    <label class="text-md px-2 rounded-l-md  -mr-1">
+                        Check the box if Notes are added
+                    </label>
+            </div>
+            <div class="">
+                <div class="w-full p-2 rounded-b-lg bg-emerald-400 text-white text-center font-semibold hidden" id="uploader">
+                    <input name="status" type="text" class="bg-emerald-400 focus:outline-none w-24" value="Uploading..."/>
+                    <input name="upload-status" class="bg-emerald-400 focus:outline-none w-16" type="text" name="upload-status" value="0" readonly/>
+                </div>
+                
+                <button id="<%= locals.data._id %>" class="bg-emerald-400 px-4 py-1 text-white rounded-md m-2 submit-btn" onclick="submitModule(this)">Submit</button>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white  p-4 m-4 rounded-2xl">
+        <% locals.data.modules.forEach((module)=>{  %> 
+            <div class="container-fluid relative" id="<%=module._id%> " >
+                <div class="flex items-center p-2">
+                    <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 w-2/6 ">
+                        Module Title
+                    </p>
+                    <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md w-5/6 " name="title" type="text" value="<%= module.title %> "
+                        readonly/>
+                        
+                </div>
+                <button class="p-1 absolute right-8 top-2" onclick="toggleModule(this)" >View</button>
+                <div class="hidden text-black toggle">
+                    
+                    <div class="flex items-center p-2">
+                        <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 w-2/6 ">
+                            Module Content
+                        </p>
+                        <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md w-5/6 " name="title" type="text" value="<%= module.content %> "
+                            readonly/>
+                    </div>
+                    <video 
+  id="my-player" 
+  class="video-js vjs-16-9" 
+  controls 
+  preload="auto" 
+  width="100%"
+  data-setup='{}'
+>
+  <source src=<%= module.upload?.mux_playback_id %> type="video/mux" />
+</video>
+                </div>
+                </div>
+            <%});%>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mux/videojs-kit@latest/dist/index.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mux/videojs-kit@latest/dist/index.css">
+<script src="https://cdn.jsdelivr.net/npm/@mux/mux-player"></script>
+<script src="https://unpkg.com/@mux/upchunk@2"></script>
+<script>
+    $("#courses").addClass("bg-emerald-400");
+    function handleModuleAccess(event) {
+
+        // $.post('/admin/post/access/module',{},(data,err)=>{
+        //     console.log(err,data);
+        // });
+        console.log(event);
+    }
+    function addToggle(){
+        $("#add-module").toggleClass("hidden");
+        $("#add-module-btn").toggleClass("rounded-2xl");
+        $("#add-module-btn").toggleClass("rounded-t-2xl");
+    }
+    function submitModule(event){
+        const id = event.getAttribute('id');
+        event.classList.add("hidden");
+        const title = $('input[name=title]').val();
+        const description = $('input[name=description]').val();
+        const video = document.getElementById("video-file");
+        const uploader = $('#uploader').removeClass('hidden');
+        $.post('/admin/post/module',{course_id : id, module_title : title,module_content : description},(data,res)=>{
+            if(res==="success"){
+                const upload = UpChunk.createUpload({
+                    endpoint:data.upload_url,
+                    file:video.files[0],
+                    chunkSize:30720
+                });
+                upload.on("error",err=>{
+                    console.log(err.detail);
+                    alert("Error Occured");
+                });
+                upload.on("progress",progress =>{
+                    $("input[name=upload-status]").val(parseInt(progress.detail));
+                });
+                upload.on("success",()=>{
+                    $("input[name=status]").val("Uploaded");
+                    setTimeout(()=>{event.classList.remove('hidden'),uploader.addClass("hidden")},3000)
+                });
+            }
+        });
+    }
+    function toggleModule(event){
+        const container = event.parentNode.querySelector(".toggle");
+        if (container.classList.contains('hidden'))
+            container.classList.remove('hidden');
+        else
+            container.classList.add("hidden");
+    }
+</script>
+
+<%- include("partials/footer")  %>

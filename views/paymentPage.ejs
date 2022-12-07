@@ -1,0 +1,60 @@
+<% include('partials/header')  %> 
+    <div class="container border-2  h-5/6 w-4/5 flex mx-20 mt-20">
+        <div class="left bg-blue-700 h-5/6 w-80 p-8">
+            <div>
+                <p class="text-white  mt-5 capitalize"><%=locals.role%> Payment</p>
+                <h1 class="text-white font-bold text-xl mt-2">Guitar</h1>
+            </div>
+            <div>
+                <hr class="mt-4">
+                <p class="text-white font-bold  mt-5"> <i class="fa-solid fa-wallet"></i>ID</p>
+                <h1 class="text-white  text-xl mt-2"><%= locals.subscription_id %> </h1>
+            </div>
+        </div>
+        <div class="right mx-10">
+            <img class="h-10 w-48 mt-5" src="razorpay.png" alt="" srcset="">
+            <hr class="mt-8">
+            <ul class="mt-10">
+                <% if(locals.plan == "pro") { %> 
+                <li> <a class=" font-bold text-2xl " href="">Guitar Pro Subscription(1 Month)</a></li>
+                <% } else {  %>
+                <li> <a class=" font-bold text-2xl " href="">Guitar Pro Plus Subscription(1 Month)</a></li>
+                <% } %> 
+            </ul>
+            <br>
+            <button id="rzp" class="bg-blue-500 font-bold text-xl text-white hover:bg-blue-700 p-2 px-10 rounded justify-center"> <i class="fa-regular fa-credit-card"></i> Pay </button>
+        </div>
+    </div>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        var options = {
+            "key": "<%= locals.key %>", 
+            "currency": "INR",
+            "name": "Guitar Site",
+            "description": "",
+            "image": "",
+            "timeout" : 300,
+            "subscription_id": "<%= locals.subscription_id %>", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+            "callback_url":"/payment-success?planId=<%=locals.planID%>&role=<%=locals.role%>&subscriptionid=<%=locals.subscription_id%>",
+            "redirect" : true,
+            "prefill": {
+                "email": "<%= locals.user.email%>"
+            },
+            "notes": {
+                "role" : "<%=locals.role%>",
+                "authID": "<%= locals.user.authID%>"
+            },
+            "theme": {
+                "color": "#3399cc"
+            }
+        };
+        var rzp1 = new Razorpay(options);
+        rzp1.on('payment.failed', function (response) {
+            alert(response.error.description);
+        });
+        document.getElementById('rzp').onclick = function (e) {
+            rzp1.open();
+            e.preventDefault();
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>

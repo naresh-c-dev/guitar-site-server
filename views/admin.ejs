@@ -1,0 +1,131 @@
+<%- include('partials/header') %>
+
+<div class="flex-1 ml-40 bg-slate-300 h-100">
+    <div class="flex">
+        <div class=" container pl-12">
+            <div class="grid grid-cols-2 gap-4 my-3 ">
+                <div class="bg-white p-3 drop-shadow-md rounded-2xl relative">
+                    <p class="font-semibold p-1 text-2xl">Insights</p>
+                    <canvas id="home-chart"></canvas>
+                </div>
+                <div class="grid grid-cols-2 gap-12 ">
+                    <div class=" rounded-2xl bg-white hover:bg-slate-500 px-3 p-2 drop-shadow-md hover:scale-105">
+                        <p class="mt-2 font-semibold text-xl">Total Users</p>
+                        <hr class="bg-black mt-2">
+                        <p class="mt-2 font-md tracking-wider text-xl "> <i
+                                class="fa-solid fa-ticket text-emerald-400 text-xl py-1 px-2  border-2 border-emerald-400 rounded-full"></i>
+                            <%= locals.data.signup%></p>
+                    </div>
+                    <div class=" bg-white hover:bg-slate-300 rounded-2xl px-3 p-2 drop-shadow-md hover:scale-105">
+                        <p class="mt-2 font-semibold text-xl">Feedback Forms</p>
+                        <hr class="bg-black mt-2">
+                        <p class="mt-2 font-md tracking-wider text-xl "><i
+                                class="fa-solid fa-dollar-sign text-amber-300 text-xl border-2 border-amber-300 rounded-full py-1 px-2"></i>
+                            0</p>
+                    </div>
+                    <div class=" rounded-2xl bg-white hover:bg-slate-500 px-3 p-2 drop-shadow-md hover:scale-105 ">
+                        <p class="mt-2 font-semibold text-xl">Active Groups</p>
+                        <hr class="bg-black mt-2">
+                        <p class="mt-2 font-md tracking-wider text-xl "> <i
+                                class="fa-solid fa-dollar-sign text-emerald-400 text-xl py-1 px-2  border-2 border-emerald-400 rounded-full"></i>
+                            0 </p>
+                    </div>
+                    <div class=" bg-white hover:bg-slate-300 rounded-2xl px-3 p-2 drop-shadow-md hover:scale-105 ">
+                        <p class="mt-2 font-semibold text-xl">Active Plans</p>
+                        <hr class="bg-black mt-2">
+                        <p class="mt-2 font-md tracking-wider text-xl "><i
+                                class="fa-solid fa-dollar-sign text-amber-300 text-xl border-2 border-amber-300 rounded-full py-1 px-2"></i>
+                            2</p>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 my-2 gap-4 ">
+                <div class=" bg-white drop-shadow-md rounded-2xl my-3 p-3">
+                    <div class="grid grid-cols-2 justify-between">
+                        <p class="mt-2 font-semibold text-xl">New Students</p>
+                        <div class="mt-2 absolute right-4 hover:scale-105 hover:cursor-pointer">
+                            <a class="text-end mt-2 py-1 px-2 rounded-md border-2 border-emerald-400 hover:text-black hover:no-underline"
+                                href="/admin/students">View All</a>
+                        </div>
+                    </div>
+
+                    <hr class="bg-black mt-2">
+                    <% locals.data.userData.forEach((student)=>{ %>
+                    <div class="flex p-2">
+                        <div class=""><i class="fa-regular fa-user bg-emerald-400 text-white p-3 rounded-full"></i>
+                        </div>
+                        <div class="pl-2 flex flex-row items-center">
+                            <p class="text-sm font-md"><%= student.email%></p>
+                        </div>
+                    </div>
+                    <%})%>
+                </div>
+                <div class=" bg-white drop-shadow-md rounded-2xl my-3 p-3">
+                    <div class="grid grid-cols-2 justify-between">
+                        <p class="mt-2 font-semibold text-xl">New Mentors</p>
+                        <div class="mt-2 absolute right-4 hover:scale-105 hover:cursor-pointer">
+                            <a class="text-end mt-2 py-1 rounded-md border-2 border-emerald-400 px-2 hover:text-black hover:no-underline "
+                                href="/admin/mentors">View All</a>
+                        </div>
+                    </div>
+                    <hr class="bg-black mt-2">
+                    <% locals.data.mentorData.forEach((mentor)=>{ %>
+                    <div class="flex p-2 mt-1">
+                        <div class=""><i class="fa-regular fa-user bg-emerald-400 text-white p-3 rounded-full"></i>
+                        </div>
+                        <div class="pl-2 flex flex-row items-center">
+                            <p class="text-sm font-md "><%= mentor.email%></p>
+                        </div>
+                    </div>
+                    <%})%>
+
+                </div>
+
+
+
+
+            </div>
+        </div>
+        <script>
+            const homeNav = $("#home")
+            homeNav.addClass("bg-emerald-400");
+            const signup =<%- locals.data?.all_students %>;
+            const free_subscriptions = <%- (locals.data?.free_students) || 0  %>; 
+            const subscribed_students = signup - free_subscriptions ;
+            const chartElement = $('#home-chart');
+            const data = [ <%- locals.data?.all_students %> , <%- locals.data?.courses %> , <%- locals.data?.mentors %>,subscribed_students];
+            new Chart(chartElement, {
+                type: 'bar',
+                data: {
+                    labels: ['Students', 'Courses', 'Mentors', 'Subscribed Student'],
+                    datasets: [{
+                        label : 'Count',
+                        data: data,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(255, 159, 64, 0.2)',
+                            'rgba(255, 205, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgb(255, 99, 132)',
+                            'rgb(255, 159, 64)',
+                            'rgb(255, 205, 86)',
+                            'rgb(75, 192, 192)',
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+
+            
+        </script>
+        <%- include('partials/footer') %>

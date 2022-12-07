@@ -1,0 +1,162 @@
+<%- include('partials/header') %>
+ 
+<div class="flex-1 ml-40 bg-slate-200 h-screen" id="page">
+    <div class="bg-emerald-400 p-8">
+        <h1 class="text-3xl text-white font-semibold ">Mentors</h1>
+    </div>
+    <div class="ml-4 m-4 grid grid-cols-3 gap-3 bg-white p-4 rounded-2xl ">
+        <div class="flex items-center p-2">
+            <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 ">Mentor Email
+            </p>
+            <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md " type="text"
+                id="title" onkeyup="searchFun()" placeholder="xxx@yyy.com" />
+        </div>
+        <div class="flex items-center p-2">
+            <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 ">AuthID
+            </p>
+            <input class=" border-slate-900 border-2 px-2 py-1 focus:outline-none rounded-r-md " type="text"
+                id="auth-id" placeholder="auth0|*" />
+        </div>
+        <div class="p-2">
+            <button class="hover:cursor-pointer px-4 hover:scale-105 py-1 bg-emerald-400 rounded-md  text-lg ">Search <i
+                    class="fa-solid fa-search text-sm ml-1"></i> </button>
+        </div>
+    </div>
+    <div class="bg-white p-4 m-4 rounded-2xl">
+        <div class="p-2">
+            <p class="text-slate-900 font-semibold mb-2 underline decoration-emerald-400">Mentors List</p>
+        </div>
+        <table class="table" id="mytable">
+            <thead class="">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Students</th>
+                    <th scope="col">Access</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody class="">
+                <% locals.data.forEach((element,index) => { %>
+                <tr  class="">
+                    <td scope="row"><%= index+1 %> </td>
+                    <td scope=""> <%= element.email %></td>
+                    <td scope="" class="capitalize"><%= element.students.length%></td>
+                    <% if(element.status){ %>
+                        <td id=<%= element._id %>> <button id="false" onclick=access(this) class="px-2 py-1 bg-amber-300 rounded-md hover:scale-105">Revoke</button></td>
+                        <%} else{ %>
+                        <td id=<%= element._id %>> <button id="true" onclick=access(this) class="px-2 py-1 bg-emerald-400 rounded-md hover:scale-105">Approve</button></td>
+                        <% } %>
+                    <td> <button id="<%=element._id%>" onclick="viewMentor(this)"
+                            class="bg-emerald-400 px-2 py-1 text-white rounded-md">View</button> </td>
+                </tr>
+                </a>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="m-auto absolute left-0 right-0 top-20 bottom-0 w-3/6 drop-shadow-2xl hidden" id="mentor-view">
+    <div class="bg-white rounded-2xl relative">
+        <div class="text-slate-900 absolute top-1 right-4 z-20" onclick="handleCrossClick(this)">
+            <i class="fa-solid fa-xmark  text-3xl hover:cursor-pointer "></i>
+        </div>
+        <div class="relative">
+            <div class="px-4 py-2 font-bold text-white rounded-t-2xl bg-emerald-400 text-xl ">
+                Mentor Details
+            </div>
+            <div class="mt-4 p-2">
+                <form id="form">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="flex items-center p-2">
+                            <span
+                                class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white">AuthID
+                            </span>
+                            <input type="text" name="auth" value=""
+                                class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full"
+                                readonly>
+                        </div>
+                        <div class="flex items-center p-2">
+                            <span class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white">Email
+                            </span>
+                            <input type="text" name="email" value=""
+                                class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full"
+                                readonly>
+                        </div>
+                        <div class="flex items-center p-2">
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+    <script>
+        const homeNav = $("#mentor")
+            homeNav.addClass("bg-emerald-400");
+        function handleClick(event) {
+            const id = event.parentElement.id;
+            window.location.href = '/admin/mentor/' + id;
+        }
+        function access(event) {
+            const url = '/admin/access/'+ event.parentElement.id;
+            const status = event.id == "true" ? true : false;
+            console.log(status);
+            const loader = $('#loader');
+            if(loader.hasClass('hidden')){
+                loader.removeClass('hidden');
+            } 
+            $.post(url, {
+                status: status
+            }, (data, err) => {
+                if(err==="success"){
+                    loader.addClass('hidden');
+                    location.reload();
+                }
+            });
+        }
+        const searchFun = () => {
+            let filter = document.getElementById('title').value.toLowerCase();
+            let mytable = document.getElementById('mytable');
+            let tr = mytable.getElementsByTagName('tr');
+            for(var i=0; i<tr.length; i++){
+            let td = tr[i].getElementsByTagName('td')[1];
+            if(td){
+                let textvalue = td.textContent || td.innerHTML;
+                if(textvalue.toLowerCase().indexOf(filter) > -1){
+                    tr[i].style.display="";
+                }else{
+                    tr[i].style.display = "none";
+                }
+            }
+            }
+        }
+        function viewMentor(event){
+            const id = event.getAttribute('id');
+            const url = "/admin/mentor/" + id;
+            const page = $("#page");
+            page.addClass("opacity-30");
+            const view = $('#mentor-view');
+            $.getJSON(url, (data, res) => {
+                if (res === "success") {
+                    console.log(data.data);
+                    $("#form")[0].reset();
+                    $("input[name=auth]").val(data.data.authID);
+                    $("input[name=email]").val(data.data.email);
+                    if (view.hasClass('hidden')) {
+                        view.removeClass("hidden");
+                    }
+                }
+            });
+        }
+        function handleCrossClick(event) {
+            const page = $("#page");
+            const view = $("#mentor-view");
+            if (page.hasClass("opacity-30") && !view.hasClass("hidden")) {
+                page.removeClass("opacity-30");
+                view.addClass("hidden");
+            }
+        }
+    </script>
+    <%- include('partials/footer')%>

@@ -1,0 +1,31 @@
+{
+  "name": "guitar-site-server",
+  "version": "1.0.0",
+  "description": "Server for gutar site",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Naresh C",
+  "license": "ISC",
+  "dependencies": {
+    "@mux/mux-node": "^6.3.0",
+    "@mux/upchunk": "^2.6.0",
+    "auth0": "^2.44.0",
+    "body-parser": "^1.20.0",
+    "chart.js": "^4.0.1",
+    "connect-busboy": "^1.0.0",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.0.3",
+    "ejs": "^3.1.8",
+    "express": "^4.18.1",
+    "express-fileupload": "^1.4.0",
+    "express-openid-connect": "^2.8.0",
+    "http-proxy-middleware": "^2.0.6",
+    "jquery": "^3.6.1",
+    "mongoose": "^6.6.3",
+    "querystring": "^0.2.1",
+    "razorpay": "^2.8.3"
+  }
+}

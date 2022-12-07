@@ -1,0 +1,177 @@
+<%- include('partials/header')  %> 
+
+<div class="flex-1 ml-40 bg-slate-200 h-screen" id="page">
+    <div class="bg-emerald-400 p-8 flex justify-between ">
+        <h1 class="text-3xl text-white font-semibold ">Courses</h1>
+        <button onclick="addCourse()" class="border-2  rounded-md border-slate-900 hover:scale-105 font-bold px-2 py-1"> Add New Course </button>
+    </div>
+    <div class="ml-4 m-4 grid grid-cols-3 gap-3 bg-white p-4 rounded-2xl ">
+        <div class="flex items-center p-2 ">
+            <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 ">Course Title
+            </p>
+            <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md " type="text"
+                id="title" onkeyup="searchFun()" placeholder="xxx*yyy" />
+        </div>
+        <div class="flex items-center p-2 ">
+            <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  h-10 -mr-1 ">
+                Type</p>
+            <select class=" border-slate-900 border-2 px-2 py-1  focus:outline-none rounded-r-md h-10 " id="myinput">
+                <optgroup>
+                    <option value="free">Free</option>
+                    <option value="pro">Pro</option>
+                    <option value="pro-plus">Pro-Plus</option>
+                </optgroup>
+            </select>
+        </div>
+        <div class="p-2">
+            <button class="hover:cursor-pointer px-4 hover:scale-105 py-1 bg-emerald-400 rounded-md  text-lg ">Search <i
+                    class="fa-solid fa-search text-sm ml-1"></i> </button>
+        </div>
+    </div>
+    <div class="bg-white p-4 m-4 rounded-2xl">
+        <div class="p-2">
+            <p class="text-slate-900 font-semibold mb-2 underline decoration-emerald-400">Courses List</p>
+        </div>
+        <table class="table" id="mytable">
+            <thead class="">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Modules</th>
+                    <th scope="col">Access</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody class="">
+                <% locals.data.forEach((element,index) => { %>
+                <tr  class="">
+                    <td scope="row"><%= index+1 %> </td>
+                    <td scope=""> <%= element.course_title%></td>
+                    <td scope="" class="capitalize"><%= element.modules.length%></td>
+                    <% if(element.status){ %>
+                        <td id=<%= element._id %>> <button id="false" onclick=handleCourseAccess(this) class="px-2 py-1 bg-amber-300 rounded-md hover:scale-105">Revoke</button></td>
+                        <%} else { %>
+                        <td id=<%= element._id %>> <button id="true" onclick=handleCourseAccess(this) class="px-2 py-1 bg-emerald-400 rounded-md hover:scale-105">Approve</button></td>
+                        <% } %>
+                    <td> <button id="<%=element._id%>" onclick="viewCourse(this)"
+                            class="bg-emerald-400 px-2 py-1 text-white rounded-md">View</button> </td>
+                </tr>
+                </a>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="m-auto absolute left-0 right-0 top-20 bottom-0 w-3/6 drop-shadow-2xl hidden" id="add-course">
+    <div class="bg-white rounded-2xl relative">
+        <div class="text-slate-900 absolute top-1 right-4 z-20" onclick="handleCrossClick(this)">
+            <i class="fa-solid fa-xmark  text-3xl hover:cursor-pointer "></i>
+        </div>
+        <div class="relative">
+            <div class="px-4 py-2 font-bold text-white rounded-t-2xl bg-emerald-400 text-xl ">
+                New Course           </div>
+            <div class="mt-4 p-2">
+                <form id="form" action="/admin/post/course" method="post" enctype="multipart/form-data" >
+                    <div class="flex flex-col ">
+                        <div class="flex items-center p-2 ">
+                            <span
+                                class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white w-2/6">Course Title
+                            </span>
+                            <input type="text" name="title"
+                                class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-4/6 ">
+                        </div>
+                        <div class="flex items-center p-2 ">
+                            <span class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white w-2/6">Short Description
+                            </span>
+                            <input type="text" name="short-des"
+                                class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-4/6">
+                        </div>
+                        <div class="flex items-center p-2 ">
+                            <span class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white w-2/6">Features
+                            </span>
+                            <input type="text" name="features" value=""
+                                class="border-2 border-slate-900 px-2 py-1 capitalize rounded-r-md  focus:outline-none w-4/6">
+                        </div>
+                        <div class="flex items-center p-2  ">
+                            <span
+                                class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white w-2/6 h-10">Course Type
+                            </span>
+                            <select  name ="plan" class=" border-slate-900 border-2 px-2 py-1  focus:outline-none rounded-r-md h-10 w-4/6 h-10 ">
+                                <optgroup>
+                                    <option value="free">Free</option>
+                                    <option value="pro">Pro</option>
+                                    <option value="plus">Pro-Plus</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="flex items-center p-2  ">
+                            <span
+                                class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white h-10 w-2/6">Course Thumbnail
+                            </span>
+                            <input type="file" name="img"
+                                class="border-2 border-slate-900 px-2 py-1 capitalize rounded-r-md focus:outline-none h-10 w-4/6 " accept="image/*">
+                        </div>
+                    </div>
+                    <div class="flex justify-center ">
+                        <button type="submit" class="mx-auto my-2 px-6 py-2 bg-emerald-400  hover:scale-105 rounded-md"  >Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    const homeNav = $("#courses")
+    homeNav.addClass("bg-emerald-400");
+    console.log(<%locals.data%>);
+    function viewCourse(event){
+        
+        console.log(event.getAttribute('id'));
+        window.location.href="/admin/courses/"+event.getAttribute('id');
+    }
+    function handleCourseAccess(event) {
+        const status = event.id == "true" ? true : false;
+        const url = '/admin/post/access/course';
+        console.log(event.parentNode.getAttribute('id'));
+        const loader = $('#loader');
+        if(loader.hasClass('hidden')){
+            loader.removeClass('hidden');
+        } 
+        $.post(url, {
+            course_id : event.parentNode.getAttribute('id'),
+            status: status
+        }, (data, err) => {
+            if(err==="success") {
+                loader.addClass('hidden');
+                location.reload();
+            }
+        });
+    }
+    function addCourse(){
+        $("#form")[0].reset();
+        $("#page").addClass("opacity-40");
+        $("#add-course").removeClass("hidden");
+        
+    }
+    function handleCrossClick(){
+        $("#add-course").addClass("hidden");
+        $("#page").removeClass("opacity-40");
+    }
+    const searchFun = () => {
+            let filter = document.getElementById('title').value.toLowerCase();
+            let mytable = document.getElementById('mytable');
+            let tr = mytable.getElementsByTagName('tr');
+            for(var i=0; i<tr.length; i++){
+            let td = tr[i].getElementsByTagName('td')[1];
+            if(td){
+                let textvalue = td.textContent || td.innerHTML;
+                if(textvalue.toLowerCase().indexOf(filter) > -1){
+                    tr[i].style.display="";
+                }else{
+                    tr[i].style.display = "none";
+                }
+            }
+            }
+        }
+</script>
+<%- include('partials/footer')%>
