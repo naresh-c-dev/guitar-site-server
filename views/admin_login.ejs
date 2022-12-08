@@ -1,0 +1,35 @@
+<%- include('partials/header')  %> 
+<div class="flex-1 ml-40 h-100 relative">
+    <div class="mt-32 flex align-center justify-center p-4">
+        <div class="bg-slate-800 p-8 rounded-lg">
+            <div class="p-2">
+                <span class="text-emerald-400 text-2xl font-semibold">Welcome back Admin!</span>
+            </div>
+            <form action="/" method="post" class="flex flex-col">
+                <div class="bg-white m-2 rounded-lg">
+                    <div class="p-2 flex align-center" >
+                        <label for="username" class="fa-solid fa-user text-emerald-400 text-xl ml-2 pt-2 "></label>
+                        <input type="text" name="username" placeholder="Username" pattern="[A-Za-z0-9@]*" class="ml-2 p-2 w-100 focus:outline-none" required/>
+                    </div>
+                </div>
+                <div class="bg-white m-2 rounded-lg">
+                    <div class="p-2 flex">
+                        <label for="password" class="fa-solid fa-key text-emerald-400 text-xl ml-2 pt-2 "></label>
+                        <input type="password" name="password" placeholder="Password" pattern="[A-Za-z0-9@]*" class="ml-2 p-2 w-100 focus:outline-none " required/>
+                    </div>
+                    
+                </div>
+                <div class="m-2 text-white font-light">
+                    <span class="flex">*Note: Input accepts only alphabets, numbers, underscore(_) and at sign(@).  </span>
+                </div>
+                <div class="p-2 m-2 align-self-center">
+                    <button type="submit" class="bg-emerald-400 rounded-lg px-4 py-2 text-lg font-semibold focus:outline-none hover:scale-105 ">Submit</button>
+                </div>
+            </form>    
+        </div>
+        
+    </div>
+</div>
+
+
+<%- include('partials/footer')  %> 

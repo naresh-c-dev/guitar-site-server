@@ -4,6 +4,7 @@
   "description": "Server for gutar site",
   "main": "app.js",
   "scripts": {
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Naresh C",
@@ -22,10 +23,16 @@
     "express": "^4.18.1",
     "express-fileupload": "^1.4.0",
     "express-openid-connect": "^2.8.0",
+    "express-session": "^1.17.3",
     "http-proxy-middleware": "^2.0.6",
     "jquery": "^3.6.1",
     "mongoose": "^6.6.3",
+    "passport": "^0.6.0",
+    "passport-local": "^1.0.0",
     "querystring": "^0.2.1",
     "razorpay": "^2.8.3"
+  },
+  "engines": {
+    "node": "16.x"
   }
 }
