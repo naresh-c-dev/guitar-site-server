@@ -1675,7 +1675,7 @@ app.post('/mux/webhook', (req, res) => {
     }
 });
 
-app.listen(3001 || process.env.PORT, (err) => {
+app.listen(process.env.PORT || 3001, (err) => {
     if (!err) {
         console.log("Server Initiated port : 3001");
     }
