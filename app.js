@@ -853,7 +853,10 @@ app.post('/payment-success', requiresAuth(), (req, res) => {
 // ###### ADMIN CALLS
 
 app.get('/', (req, res) => {
-    res.render('admin_login');
+    if (!req.isAuthenticated())
+        res.render('admin_login');
+    else
+        res.redirect('/admin');
 });
 
 app.post('/', passport.authenticate('local', {
