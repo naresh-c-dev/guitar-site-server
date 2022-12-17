@@ -1,100 +1,702 @@
 <%- include('partials/header') %>
-<div class="flex-1 ml-40 bg-slate-200 h-screen" id="page">
-    <div class="bg-emerald-400 p-8">
-        <h1 class="text-3xl text-white font-semibold ">Groups</h1>
-    </div>
-    <div class="ml-4 m-4 grid grid-cols-3 gap-3 bg-white p-4 rounded-2xl ">
-        <div class="flex items-center p-2">
-            <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 ">Group Email
-            </p>
-            <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md " type="text"
-                id="myinput" placeholder="xxx@yyy.com" />
+<div class="flex-1 ml-40 bg-slate-200 justify-center h-screen relative" id="page">
+        <div class="bg-emerald-400 flex justify-between p-8">
+            <h1 class="text-3xl text-white font-semibold ">Groups</h1>
+            <button type="button" onclick="handleAddGroup()" class="px-4 py-2 border-slate-900 border-2 focus:outline-none rounded-lg font-semibold hover:scale-105">Add New Group</button>
         </div>
-        <div class="flex items-center p-2">
-            <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 ">AuthID
-            </p>
-            <input class=" border-slate-900 border-2 px-2 py-1 focus:outline-none rounded-r-md " type="text"
-                id="myinput" placeholder="auth0|*" />
-        </div>
-        <div class="p-2">
-            <button class="hover:cursor-pointer px-4 hover:scale-105 py-1 bg-emerald-400 rounded-md  text-lg ">Search <i
-                    class="fa-solid fa-search text-sm ml-1"></i> </button>
-        </div>
-    </div>
-    <div class="bg-white p-4 m-4 rounded-2xl">
-        <div class="p-2">
-            <p class="text-slate-900 font-semibold mb-2 underline decoration-emerald-400">Groups List</p>
-        </div>
-        <table class="table">
-            <thead class="">
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Students</th>
-                    <th scope="col">Access</th>
-                    <th scope="col"></th>
-                </tr>
-            </thead>
-            <tbody class="">
-                <% locals.data.forEach(element => { %>
-                <tr  class="">
-                    <td scope="row"></td>
-                    <td scope=""> <%= element.email %></td>
-                    <td scope="" class="capitalize"><%= element.group_members.length%></td>
-                    <% if(element?.status){ %>
-                        <td id=<%= element._id %>> <button id="false" onclick=access(this) class="px-2 py-1 bg-amber-300 rounded-md hover:scale-105">Revoke</button></td>
-                        <%} else{ %>
-                        <td id=<%= element._id %>> <button id="true" onclick=access(this) class="px-2 py-1 bg-emerald-400 rounded-md hover:scale-105">Approve</button></td>
-                        <% } %>
-                    <td> <button id="<%=element._id%>" onclick="viewMentor(this)"
-                            class="bg-emerald-400 px-2 py-1 text-white rounded-md">View</button> </td>
-                </tr>
-                </a>
-                <% }); %>
-            </tbody>
-        </table>
-    </div>
-</div>
-<div class="m-auto absolute left-0 right-0 top-20 bottom-0 w-3/6 drop-shadow-2xl hidden" id="mentor-view">
-    <div class="bg-white rounded-2xl relative">
-        <div class="text-slate-900 absolute top-1 right-4 z-20" onclick="handleCrossClick(this)">
-            <i class="fa-solid fa-xmark  text-3xl hover:cursor-pointer "></i>
-        </div>
-        <div class="relative">
-            <div class="px-4 py-2 font-bold text-white rounded-t-2xl bg-emerald-400 text-xl ">
-                Group Details
+        <div class="ml-4 m-4 grid grid-cols-3 gap-3 bg-white p-4 rounded-2xl ">
+            <div class="flex items-center p-2">
+                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 ">Group Email
+                </p>
+                <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md " type="text"
+                    id="myinput" placeholder="xxx@yyy.com" />
             </div>
-            <div class="mt-4 p-2">
-                <form id="form">
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="flex items-center p-2">
-                            <span
-                                class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white">AuthID
-                            </span>
-                            <input type="text" name="auth" value=""
-                                class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full"
-                                readonly>
+            <div class="flex items-center p-2">
+                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 ">AuthID
+                </p>
+                <input class=" border-slate-900 border-2 px-2 py-1 focus:outline-none rounded-r-md " type="text"
+                    id="myinput" placeholder="auth0|*" />
+            </div>
+            <div class="p-2">
+                <button class="hover:cursor-pointer px-4 hover:scale-105 py-1 bg-emerald-400 rounded-md  text-lg ">Search <i
+                        class="fa-solid fa-search text-sm ml-1"></i> </button>
+            </div>
+        </div>
+        <div class="bg-white p-4 m-4 rounded-2xl">
+            <div class="p-2">
+                <p class="text-slate-900 font-semibold mb-2 underline decoration-emerald-400">Groups List</p>
+            </div>
+            <table class="table">
+                <thead class="">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Students</th>
+                        <th scope="col">Access</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody >
+                    <% locals.data.forEach((element,index) => { %>
+                    <tr  class="">
+                        <td scope="row"><%= index+1 %> </td>
+                        <td scope=""> <%= element.email %></td>
+                        <td scope="" class="capitalize"><%= element?.group_members.length%></td>
+                        <% if(element?.group_status){ %>
+                            <td id=<%= element.authID %>> <button id="false" type="button" onclick=handleGroupAccess(this) class="px-2 py-1 bg-amber-300 rounded-md hover:scale-105">Revoke</button></td>
+                            <%} else{ %>
+                            <td id=<%= element.authID %>> <button id="true" type="button" onclick=handleGroupAccess(this) class="px-2 py-1 bg-emerald-400 rounded-md hover:scale-105">Approve</button></td>
+                            <% } %>
+                        <td> <button id="<%=element._id%>" onclick="viewGroup(this)"
+                                class="bg-emerald-400 px-2 py-1 text-white rounded-md">View</button> </td>
+                    </tr>
+                    </a>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>    
+    <div class="m-auto w-3/6 absolute left-0 right-0 justify-center align-center  top-4 bottom-0 drop-shadow-2xl hidden  " id="group-view">
+        <div class="bg-white rounded-2xl relative overflow-y-scroll h-5/6 ">
+            <div class="text-slate-900 absolute top-1 right-4 z-20" onclick="handleCrossClick(this)">
+                <i class="fa-solid fa-xmark  text-3xl hover:cursor-pointer "></i>
+            </div>
+            <div class="relative">
+                <div class="px-4 py-2 font-bold text-white rounded-t-2xl bg-emerald-400 text-xl ">
+                    Group Details
+                </div>
+                <div class="p-2">
+                    <ul class="flex justify-around p-2 bg-slate-100 rounded-lg">
+                        <li class="">    
+                            <span class="hover:text-emerald-400 cursor-pointer px-2 font-semibold" onclick="handleProfileNav(this)" id="group-profile-nav">Profile</span>
+                            <div class="h-1 bg-emerald-400 hidden"></div>
+                        </li>
+                        <li class="hover:text-emerald-400 cursor-pointer">    
+                            <span class="hover:text-emerald-400 cursor-pointer px-2 font-semibold" onclick="handleRequestNav(this)" id="group-request-nav">Request</span>
+                            <div class="h-1 bg-emerald-400 w-100 hidden"></div>
+                        </li>
+                        <li class="hover:text-emerald-400 cursor-pointer">    
+                            <span class="hover:text-emerald-400 cursor-pointer px-2 font-semibold" onclick="handleMentorNav(this)" id="group-mentor-nav">Mentor</span>
+                            <div class="h-1 bg-emerald-400 w-100 hidden"></div>
+                        </li>
+                        <li class="hover:text-emerald-400 cursor-pointer">
+                            <span class="hover:text-emerald-400 cursor-pointer px-2 font-semibold" onclick="handlePlanNav(this)" id="group-plan-nav">Plan</span>
+                            <div class="h-1 bg-emerald-400 w-100 hidden"></div>
+                        </li>
+                        <li class="hover:text-emerald-400 cursor-pointer">
+                            <span class="hover:text-emerald-400 cursor-pointer px-2 font-semibold" onclick="handleAddUserNav(this)" id="group-user-nav">Add Group User</span>
+                            <div class="h-1 bg-emerald-400 w-100 hidden"></div>
+                        </li>
+                    </ul>
+                    <input type="hidden" name="group-id">
+                    <input type="hidden" name="group-customer-id">
+                    <div id="group-profile">
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="flex items-center p-2">
+                                <span
+                                    class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white">AuthID
+                                </span>
+                                <input type="text" name="auth" value=""
+                                    class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full"
+                                    readonly>
+                            </div>
+                            <div class="flex items-center p-2">
+                                <span class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white">Email
+                                </span>
+                                <input type="text" name="email" value=""
+                                    class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full"
+                                    readonly>
+                            </div>
+                            <div class="flex items-center p-2">
+                                <span class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white">Plan
+                                </span>
+                                <input type="text" name="plan" 
+                                    class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full capitalize"
+                                    readonly>
+                            </div>
                         </div>
-                        <div class="flex items-center p-2">
-                            <span class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white">Email
-                            </span>
-                            <input type="text" name="email" value=""
-                                class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full"
-                                readonly>
-                        </div>
-                        <div class="flex items-center p-2">
+                        <div class="grid grid-cols-2 md:grid-cols-1 gap-2 mt-2" id="subscribed">
+                            <div class="flex items-center col-span-2 p-2">
+                                <span class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md w-1/3 text-white">Subscription ID
+                                </span>
+                                <input type="text" name="subscription-id" 
+                                    class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-2/3"
+                                    readonly>
+                            </div>
+                            <div class="flex items-center p-2">
+                                <span class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md w-full text-white">Status
+                                </span>
+                                <input type="text" name="first-payment" 
+                                    class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none "
+                                    readonly>
+                            </div>
+                            <div class="flex items-center p-2">
+                                <span class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md w-full text-white">Plan Status
+                                </span>
+                                <input type="text" name="plan-status" 
+                                    class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-2/3"
+                                    readonly>
+                            </div>
+                            <div class="flex items-center col-span-2 p-2">
+                                <span class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md w-1/3 text-white capitalize">current mentor
+                                </span>
+                                <input type="text" name="current-mentor" 
+                                    class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-2/3"
+                                    readonly>
+                            </div>
+                            <div class="col-span-2 p-2 " id="group-members-list">
+                                <div class="px-2 py-1 bg-slate-900 border-2 border-slate-900 text-center text-white rounded-t-md">
+                                    <span>Group Members</span>
+                                </div>
+                                <div class="border-2 rounded-b-md border-slate-900">
+                                    <table class="table">
+                                        <thead>
+                                            <th>Email</th>
+                                            <th>AuthID</th>
+                                            <th>#</th>
+                                        </thead>
+                                    
+                                    <tbody id="group-members-list-body">
 
+                                    </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-span-2 p-2">
+                                <div class="px-2 py-1 bg-slate-900 border-2 border-slate-900 text-center text-white rounded-t-md">
+                                    <span>Mentor History</span>
+                                </div>
+                                <div class="border-2 rounded-b-md border-slate-900">
+                                    <table class="table">
+                                        <thead>
+                                            <th>Email</th>
+                                            <th>AuthID</th>
+                                        </thead>
+                                        <tbody id="mentor-history">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            
+                                
+                            </div>
+                            <div class="col-span-2 p-2">
+                                <div class="px-2 py-1 bg-slate-900 border-2 border-slate-900 text-center text-white rounded-t-md">
+                                    <span>Transaction History</span>
+                                </div>
+                                <div class="border-2 rounded-b-md border-slate-900">
+                                    <table class="table">
+                                        <thead>
+                                            <th>Payment ID</th>
+                                            <th>Date</th>
+                                            <th>Invoice ID</th>
+                                        </thead>
+                                        <tbody id="plan-history">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </form>
+                    <div id="group-request">
+                        <div class="p-4">
+                            <span class="px-2">Status : </span>
+                            <input type="text" name="request-status">
+                        </div>
+                        <div id="group-request-list" class="grid grid-cols-2 gap-2 ">
+                            <div class="flex items-center p-2">
+                                <span
+                                    class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md w-full text-white">Requested Plan
+                                </span>
+                                <input type="text" name="request-plan"
+                                    class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full"
+                                    readonly>
+                            </div>
+                            <div class="flex items-center p-2">
+                                <span
+                                    class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white">Size
+                                </span>
+                                <input type="text" name="request-size"
+                                    class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full"
+                                    readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="group-mentor">
+                        <div class="flex items-center p-2" >
+                            <select name="select-mentor" title="Mentor Select" class="border-2 border-emerald-400 px-2 py-1 rounded-l-md focus:outline-none w-2/3">
+                            </select>
+                            <button type="button" class="px-2 py-1 rounded-r-md w-1/3 border-emerald-400 hover:bg-slate-900 text-white font-semibold focus:outline-none bg-emerald-400" onclick="assignMentor()">Assign</button>
+                        </div>
+                    </div>
+                    <div id="group-plan">
+                        <div class="flex flex-col p-2 gap-2" >
+                            <div class="flex">
+                                <div class="border-2 border-slate-900 bg-slate-900 text-white px-2 py-1 w-1/3 rounded-l-md">
+                                    <span>Razorpay Plan</span>
+                                </div>
+                                <select name="select-razorpay-plan" title="select-plan " class="w-2/3 border-2 rounded-r-md border-slate-900 focus:outline-none" required></select>
+                            </div> 
+                            <div class="flex">
+                                <div class="border-2 border-slate-900 bg-slate-900 text-white px-2 py-1 w-1/3 rounded-l-md">
+                                    <span>Subscription</span>
+                                </div>
+                                <select name="select-subscription-plan" title="select-subscription-plan " class="w-2/3 border-2 rounded-r-md border-slate-900 focus:outline-none" required>
+                                    <option value="pro">Pro</option>
+                                    <option value="plus">Pro-Plus</option>
+                                </select>
+                            </div>
+                            <div class="flex">
+                                <div class=" rounded-l-md border-2 border-slate-900 bg-slate-900 text-white px-2 py-1 w-1/3" >
+                                    <span>Quantity</span>
+                                </div>
+                                <input type="number" name="plan-quantity" min="1" max="8" class="w-2/3 border-slate-900 border-2 px-2 py-1 rounded-r-md focus:outline-none" required>
+                            </div>
+                            <div class="flex ">
+                                <div class="border-2 border-slate-900 bg-slate-900 text-white px-2 py-1 w-1/3 rounded-l-md">
+                                    <span>Billing Cycle</span>
+                                </div>
+                                <input type="number" min="1" name="plan-cycle" class="w-2/3 border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none" required>
+                            </div>
+                            <div class="flex ">
+                                <button type="button" class="p-2 bg-emerald-400 text-white rounded-md w-full text-center hover:bg-slate-900 focus:outline-none" onclick="handlePlanSubmit()">Submit </button>
+                            </div>    
+                        </div>
+                        
+
+                    </div>
+                    <div id="group-add-user">
+                        <div class="flex flex-col p-2">
+                            <button type="button" class="p-2 bg-emerald-400 hover:scale-105 font-bold text-white focus:outline-none rounded-lg" onclick="handleCreateUserBtn(this)" >Create New User</button>
+                            <div class="grid grid-cols-1 bg-slate-100 rounded-lg p-2 m-2 gap-2 hidden">
+                                <div class="flex items-center p-2">
+                                    <span
+                                        class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-lg text-white w-1/3">Email
+                                    </span>
+                                    <input type="email" name="new-user-email" placeholder="xxx@yyy.com"
+                                        class="border-2 border-slate-900 px-2 py-1 rounded-r-lg focus:outline-none w-2/3 bg-slate-100"
+                                        required>
+                                </div>
+                                <div class="flex items-center p-2 relative">
+                                    <span
+                                        class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-lg text-white w-1/3 ">Password
+                                    </span>
+                                    <input type="password" name="new-user-password" placeholder="Test@123"
+                                        class="pr-password border-2 border-slate-900 px-2 py-1 rounded-r-lg focus:outline-none w-2/3 bg-slate-100" onfocus="validatePassword(this)"
+                                        required>
+                                       
+                                </div>
+                                <button type="button" class="bg-emerald-400 p-2 w-full text-white hover:bg-slate-900 rounded-md" onclick="handleAddNewUser()"> Submit </button>
+                            </div>
+                        </div>
+                        <div class="flex p-2">
+                            <select name="select-add-new-group-user" class="w-2/3 border-2 px-2 py-1 border-slate-900 focus:outline-none rounded-l-md"></select>
+                            <button type="button" class="w-1/3 bg-slate-900 text-white rounded-r-md px-2 py-1" onclick="handleAddExistingUser()" >Add User</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
-<div>
-    
-</div>
+    <div class="m-auto absolute left-0 right-0 top-1/3 bottom-0 w-3/6 drop-shadow-2xl hidden" id="response">
+        <div class="bg-white rounded-2xl relative">
+            <div class="text-slate-900 absolute top-1 right-4 z-20" onclick="handleStatusCrossClick(this)">
+                <i class="fa-solid fa-xmark  text-3xl hover:cursor-pointer "></i>
+            </div>
+            <div class="relative">
+                <div class="mt-4 p-2">
+                        <div class="flex flex-col ">
+                            <div class="flex items-center p-2 ">
+                                <input type="text" name="response" 
+                                    class="border-0 p-4 text-2xl focus:outline-none w-4/6" readonly>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="m-auto absolute left-0 right-0 top-1/3 bottom-0 w-1/2 drop-shadow-2xl hidden" id="add-group">
+        <div class="bg-white rounded-2xl relative">
+            <div class="text-slate-900 absolute top-1 right-4 z-20" onclick="handleAddGroupCrossClick()">
+                <i class="fa-solid fa-xmark text-3xl cursor-pointer hover:scale-105"></i>
+            </div>
+            <div class="relative">
+                <div class="px-4 py-2 font-bold text-white rounded-t-2xl bg-emerald-400 text-xl"><span>New Student</span></div>
+                <div class="mt-4 p-2">
+                    <div>    
+                        <div class="grid grid-cols-1 gap-2 px-6 justify-center">
+                            <div class="flex items-center p-2">
+                                <span
+                                    class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-lg text-white w-1/3">Email
+                                </span>
+                                <input type="email" name="group-user-email" placeholder="xxx@yyy.com"
+                                    class="border-2 border-slate-900 px-2 py-1 rounded-r-lg focus:outline-none w-2/3"
+                                    required>
+                            </div>
+                            <div class="flex items-center p-2 relative">
+                                <span
+                                    class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-lg text-white w-1/3">Password
+                                </span>
+                                <input type="password" name="group-user-password" placeholder="Test@123"
+                                    class="pr-password border-2 border-slate-900 px-2 py-1 rounded-r-lg focus:outline-none w-2/3" onfocus="validatePassword(this)"
+                                    required>
+                                   
+                            </div>
+                            <div class="row-span-1 p-2">
+                                <button type="button" onclick="handleAddGroupSubmit()" class="px-4 py-2 bg-emerald-400 hover:scale-105 text-white font-semibold rounded-lg focus:scale-105" onclick="handleAddUserSubmit()">Submit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>    
 <script>
-   $("#groups").addClass("bg-emerald-400"); 
+   $("#groups").addClass("bg-emerald-400");
+   $.getJSON('/admin/get/mentor',(mentorsData,mentorErr)=>{
+        if(mentorErr === "success" && mentorsData.res){
+            const select_mentor = $('select[name=select-mentor]');
+            mentorsData.mentors.forEach(mentor => {
+                const optionHTML = $("<option></option>").val(mentor._id).text(mentor.email).attr("name",mentor.email);
+                select_mentor.append(optionHTML);
+            });
+        } else {
+            handleResponse(false,'Something Went Wrong, Try Again later');
+        }
+        
+    });
+    $.getJSON('/admin/get/users',(data,err)=>{
+        if (data.res && err==='success'){
+            const select_users = $('select[name=select-add-new-group-user]');
+            data.users.forEach(user=>{
+                const optionHTML = $('<option></option>').val(user._id).text(user.email);
+                select_users.append(optionHTML);
+            });
+        } else{
+            handleResponse(false,'Something Went Wrong, Try Again later');
+        }
+    });
+    $.getJSON('/admin/get/plans',(data,err)=>{
+        if(data.res && err ==='success'){
+            const select_razor_plan = $('select[name=select-razorpay-plan]');
+            data.plans.forEach(plan=>{
+                const optionHTML = $('<option></option>').val(plan.razorpay_plan_id).text(plan.plan_name);
+                select_razor_plan.append(optionHTML);
+            });
+        } else {
+            handleResponse(false,'Something went wrong, try again later');
+        }
+    });
+    function handleAddGroup(){
+        $('#add-group').removeClass('hidden');
+        $('#page').addClass('opacity-30');
+    }    
+    function handleAddGroupCrossClick(){
+        $('#add-group').addClass('hidden');
+        $('#page').removeClass('opacity-30');
+    }
+    function handleAddGroupSubmit(){
+        $('#add-group').addClass('hidden');
+        $('#loader').removeClass('hidden');
+        const group_password = $('input[name=group-user-password]').val();
+        const group_email = $('input[name=group-user-email]').val();
+        const email_regex = /^[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*$/;
+        const password_regex =  /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
+        if(email_regex.test(group_email) && password_regex.test(group_password)){
+            $.post('/admin/group/user',{
+                email : group_email, 
+                password:group_password, 
+                user_type : 'new',
+                role : 'group', 
+            },(res,err)=>{
+                if(res.res && err === 'success'){
+                    window.location.reload();
+                } else {
+                    handleResponse(false,'Something went wrong, Try again later.');
+                }
+                $('#loader').addClass('hidden');
+            });
+        } else{
+            handleResponse(false,'Kindly fill appropriate credentials.');
+        }
+    }
+    function handleResponse(res,message){
+        $('#group-view').addClass('hidden');
+        $('#response').removeClass('hidden');
+        res===true?$('input[name=response]').val(message).addClass('text-emerald-400'):$('input[name=response]').val(message).addClass("text-red-400");
+        $('#loader').addClass('hidden');
+        $('#page').addClass('opacity-30');
+    }   
+    function viewGroup(event) {
+        const url = '/admin/groups/get/'+event.getAttribute('id');
+        handleProfileNav(document.getElementById('group-profile-nav'));
+        $('#group-view').removeClass('hidden');
+        $('#page').addClass('opacity-30');
+        const loader = $('#loader');
+        loader.removeClass('hidden');
+        $.get(url,(data,err)=>{
+            console.log(url);
+            if(data.res == true){
+                $('input[name=auth]').val(data.group_data.authID);
+                $('input[name=email]').val(data.group_data.email);
+                $('input[name=plan]').val(data.group_data.subscribed_plan);
+                $('input[name=group-id]').val(data.group_data._id);
+                $('input[name=group-customer-id]').val(data?.group_data?.razorpay_customer_id);
+                if (data.group_data?.request?.request_status){
+                    $('input[name=request-status').val('Requested').addClass('text-emerald-400');
+                    $('#group-request-list').removeClass('hidden');
+                    $('input[name=request-plan]').val(data.group_data?.request?.plan);
+                    $('input[name=request-size]').val(data.group_data?.request?.maximum_size);
+                    const root = $('<div></div>').addClass('p-2 grid grid-cols-2 col-span-2');
+                    for (let iter=0;iter<data.group_data?.request?.members.length;iter++){
+                        const div1 = $("<div>").addClass('flex items-center p-2');
+                        $('<span>').text('Member Email :').addClass("px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md w-full text-white").appendTo(div1);
+                        $('<input>',{type: 'text',readonly : true}).val(data.group_data.request.members[iter].member_email).addClass("border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full").appendTo(div1);
+                        const div2 = $("<div>").addClass('flex items-center p-2');
+                        $('<span>').text('Member AuthID :').addClass("px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md w-full text-white").appendTo(div1);
+                        $('<input>',{type: 'text',readonly : true}).val(data.group_data.request.members[iter].member_auth_id).addClass("border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full").appendTo(div1);
+                        root.append(div1);
+                        root.append(div2);
+                    }
+                    $("#group-request-list").append(root);
+                }else {
+                    $('input[name=request-status').val('Not Requested').addClass('text-red-400 font-semibold');
+                }
+                    
+                if (data.group_data?.group_members.length > 0) {
+                    $('#group-members-list-body').empty();
+                    $('#group-members-list').removeClass('hidden');
+                    data.group_data?.group_members.forEach(group_member=>{
+                        //console.log(member.member.email);
+                        const tr = $('<tr></tr>')//.attr('id',data.group_data?.group_members[iter]?.member._id);
+                        const email = $('<td></td>').text(group_member.member.email).appendTo(tr);
+                        const authID = $('<td></td>').text(group_member.member.authID).appendTo(tr);
+                        const delete_member = $('<td></td>').appendTo(tr);
+                        //const button = $('<button>',{id:data.group_data?.group_members[iter]?.member?._id})    
+                        tr.append(delete_member);
+                        $('#group-members-list-body').append(tr);
+                    });
+                }
+                if (data.group_data.subscribed_plan != 'free'){
+                    $('#subscribed').removeClass('hidden');
+                    $('input[name=subscription-id').val(data.group_data?.subscription_id);
+                    data.group_data.plan_initial_status.user_status?$('input[name=first-payment]').val('Completed').addClass('text-emerald-400'):$('input[name=first-payment]').val('Yet to do').addClass('text-yellow-400');
+                    data.group_data.plan_status?$('input[name=plan-status]').val('Active').addClass('text-emerald-400'):$('input[name=plan-status]').val('Inactive').addClass('text-red-400'); 
+                    data.group_data?.mentor_status?$('input[name=current-mentor]').val(data.group_data?.current_mentor?.mentor?.email):$('input[name=current-mentor]').val('Not yet assigned').addClass('text-yellow-400');
+                    $('#mentor-history').empty();
+                    for (let iter=0;iter < data.group_data?.mentor_history.length;iter+=1){
+                        const newElement = "<tr><td>"+data.group_data?.mentor_history[iter].mentor?.email+"</td><td>"+data.group_data?.mentor_history[iter].mentor?.authID+"</td></tr>"
+                        $('#mentor-history').append(newElement);
+                    }
+                    $('#plan-history').empty();
+                    for(let iter=0; iter<data.group_data?.plan_history.length;iter+=1){
+                        const created_at = new Date(data.group_data?.plan_history[iter].created_at);
+                        const tr = $('<tr></tr>');
+                        console.log(data.group_data?.plan_history[iter].created_at);    
+                        tr.append($('<td></td>').text(data.group_data?.plan_history[iter].razorpay_payment_ID));
+                        tr.append($('<td></td>').text(created_at.getMonth()));
+                        tr.append($('<td></td>').text());          
+                        $('#plan-history').append(tr);
+                    }
+                } else {
+                    $('#subscribed').addClass('hidden');
+                }
+            } else {
+                $('#group-view').addClass('hidden');
+                $('#response').removeClass('hidden');
+                $('input[name=response]').val("Something went wrong!").addClass("text-red-400");
+            }
+            loader.addClass('hidden');
+        })
+    }
+    function handleCrossClick(){
+        $("#group-view").addClass("hidden");
+        $("#page").removeClass("opacity-30");
+    }
+    function handleStatusCrossClick (){
+        $("#page").removeClass('opacity-30');
+        $("#response").addClass('hidden');
+    }
+    function handleProfileNav(event){
+        event.nextElementSibling.classList.remove('hidden');
+        document.getElementById('group-request-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-mentor-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-plan-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-user-nav').nextElementSibling.classList.add('hidden');
+        $('#group-request').addClass('hidden');
+        $('#group-profile').removeClass('hidden');
+        $('#group-mentor').addClass('hidden');
+        $('#group-plan').addClass('hidden');
+        $('#group-add-user').addClass('hidden'); 
+    }
+    function handleRequestNav(event){
+        event.nextElementSibling.classList.remove('hidden');
+        document.getElementById('group-profile-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-mentor-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-plan-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-user-nav').nextElementSibling.classList.add('hidden');
+        $('#group-request').removeClass('hidden');
+        $('#group-profile').addClass('hidden');
+        $('#group-mentor').addClass('hidden');
+        $('#group-plan').addClass('hidden');
+        $('#group-add-user').addClass('hidden');
+    }
+    function handlePlanNav(event) {
+        event.nextElementSibling.classList.remove('hidden');
+        document.getElementById('group-request-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-mentor-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-profile-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-user-nav').nextElementSibling.classList.add('hidden');
+        $('#group-request').addClass('hidden');
+        $('#group-profile').addClass('hidden');
+        $('#group-mentor').addClass('hidden');
+        $('#group-plan').removeClass('hidden');
+        $('#group-add-user').addClass('hidden');
+    }
+    function handleMentorNav(event){
+        event.nextElementSibling.classList.remove('hidden');
+        document.getElementById('group-request-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-plan-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-profile-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-user-nav').nextElementSibling.classList.add('hidden');
+        $('#group-request').addClass('hidden');
+        $('#group-profile').addClass('hidden');
+        $('#group-mentor').removeClass('hidden');
+        $('#group-plan').addClass('hidden');
+        $('#group-add-user').addClass('hidden');
+    }
+    function handleAddUserNav(event){
+        event.nextElementSibling.classList.remove('hidden');
+        document.getElementById('group-request-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-plan-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-profile-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-mentor-nav').nextElementSibling.classList.add('hidden');
+        $('#group-request').addClass('hidden');
+        $('#group-profile').addClass('hidden');
+        $('#group-mentor').addClass('hidden');
+        $('#group-plan').addClass('hidden');
+        $('#group-add-user').removeClass('hidden');
+    }  
+    function assignMentor() {
+        $('#loader').removeClass('hidden');
+        const mentor_id = $('select[name=select-mentor]').find(':selected').val();
+        const group_id = $('input[name=group-id]').val();
+        $.post('/admin/group/assign',{group_id : group_id,mentor_id : mentor_id},(res,err)=>{
+            if(res.res && err==="success"){
+                handleResponse(true,'Successfully assigned!');
+            } else {
+                console.log(res,err);
+                handleResponse(false,'Something went wrong, try again later');
+            }
+        }); 
+    }
+    function handlePlanSubmit(){
+        const group_auth_id = $("input[name=auth]").val();
+        const group_customer_id = $('input[name=group-customer-id]').val();
+        const plan_id = $('select[name=select-razorpay-plan]').find(':selected').val();
+        const plan_type = $('select[name=select-subscription-plan]').find(':selected').val();
+        const plan_quantity = $('input[name=plan-quantity]').val();
+        const plan_cycle = $('input[name=plan-cycle]').val();
+        $('#loader').removeClass('hidden');
+        if(plan_quantity ==='' || plan_cycle===''){
+            handleResponse(false,'Fill all the required details');
+        } else {
+            const postBody ={
+                auth_id : group_auth_id,
+                customer_id : group_customer_id,
+                quantity : parseInt(plan_quantity),
+                count : parseInt(plan_cycle),
+                plan_id : plan_id,
+                plan_type : plan_type,
+            };
+            $.post('/admin/group/update',postBody,(res,err)=>{
+                if(res.res && err==='success'){
+                    handleResponse(true,'Successfully updated!');
+                } else {
+                    handleResponse(false,'Something went wrong, Try again later.')
+                }
+                $('#loader').addClass('hidden');
+            });
+        }
+       
+        
+    }
+    function validatePassword(event){
+        console.log();
+        $("input[name="+event.name+"]").passwordRequirements({
+            numCharacters: 8,
+            useLowercase: true,
+            useUppercase: true,
+            useNumbers: true,
+            useSpecial: true,
+        });
+    }
+    function handleCreateUserBtn(event){
+        event.nextElementSibling.classList.toggle('hidden');
+    }
+    function handleAddExistingUser(){
+        const group_id = $('input[name=group-id]').val();
+        const user_id = $('select[name=select-add-new-group-user]').find(':selected').val();
+        const postBody = {
+            group_id : group_id,
+            user_id : user_id,
+            user_type : 'existing',
+        };
+        $('loader').removeClass('hidden');
+        $.post('/admin/group/user',postBody,(res,err)=>{
+            if(res.res && err==='success'){
+                handleResponse(true,'Successfully user is added!.')
+            } else {
+                handleResponse(false,'Something went wrong, Try again later');
+            }
+            $('#loader').addClass('hidden');
+        });
+
+    }
+    function handleAddNewUser(){
+        $('#loader').removeClass('hidden');
+        const user_email = $('input[name=new-user-email]').val();
+        const user_password = $('input[name=new-user-password]').val();
+        const email_regex = /^[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*$/;
+        const password_regex =  /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
+        if (email_regex.test(user_email) && password_regex.test(user_password)){
+            const group_id = $('input[name=group-id]').val();
+            $.post('/admin/group/user',{
+                user_type : 'new',
+                email : user_email,
+                password : user_password,
+                group_id : group_id,
+            },(res,err)=>{
+                if(res.res && err==='success') {
+                    handleResponse(true,'Successfully User added')
+                } else {
+                    handleResponse(false,'Fill appropriate user details!');
+                    console.log(err);
+                }
+                $('#loader').addClass('hidden');
+            });
+        } else {
+            $('#loader').removeClass('hidden');
+            handleResponse(false,'Fill appropriate user details!');
+        }
+    }
+    function handleGroupAccess(event){
+        const group_status = event.id==='true' ? true : false;
+        const group_auth_id = event.parentNode.id;
+        const postBody = {
+            group_status : group_status,
+            group_auth_id : group_auth_id,
+        };
+        $('#loader').removeClass('hidden');
+        $.post('/admin/post/access/group',postBody,(res,err)=>{
+            if(res.res && err==='success'){
+                window.location.reload();
+            } else {
+                console.log(err,res);
+                handleResponse(false,'Something went wrong, Try again later');
+            }
+            $('#loader').addClass('hidden');
+        });
+    }
 </script>
 <%- include('partials/footer')%>

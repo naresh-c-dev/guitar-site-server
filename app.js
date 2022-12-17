@@ -20,19 +20,15 @@ const {
 const mux = require('@mux/mux-node');
 const fs = require('fs');
 const request = require('request');
-const UpChunk = require('@mux/upchunk');
 const {
     log,
     Console
 } = require('console');
 const busboy = require('connect-busboy');
-const AuthenticationClient = require('auth0').AuthenticationClient;
 const ManagementClient = require('auth0').ManagementClient;
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
-
-
 
 const corsOptions = {
     origin: process.env.CORS_ORGIN,
@@ -86,21 +82,6 @@ const config = {
 
 };
 
-// const AuthClient = new AuthenticationClient({
-//     domain : 'guitar-auth0.eu.auth0.com',
-//     clientId : process.env.GLOBAL_AUTH_CLIENT_ID,
-//     clientSecret : process.env.GLOBAL_AUTH_CLIENT_SECRET
-// });
-// let access_token;
-// AuthClient.clientCredentialsGrant({audience:'https://guitar-auth0.eu.auth0.com/api/v2/',scope:'{MANAGEMENT_API_SCOPES}'},(err,response)=>{
-//     if(err){
-//         console.error(err);
-//     }
-//     console.log(response);
-//     access_token = response.access_token;
-// });
-
-
 const AuthManager = new ManagementClient({
     clientId: process.env.GLOBAL_AUTH_CLIENT_ID,
     domain: 'guitar-auth0.eu.auth0.com',
@@ -115,19 +96,20 @@ app.use(function (req, res, next) {
     next();
 });
 
-
-
 const client = mongoose.connect(process.env.MONGODB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 });
 
-
 const uploadSchema = new mongoose.Schema({
     mux_upload_id: String,
     type: String,
     mux_assest_id: String,
-    mux_playback_id: String
+    mux_playback_id: String,
+    created_at : {
+        type:Date,
+        default: Date.now
+    }
 });
 const Upload = new mongoose.model('Upload', uploadSchema);
 
@@ -138,8 +120,10 @@ const messageSchema = new mongoose.Schema({
         sender: Boolean,
         text: String,
         flag: Boolean,
-        time: Date
-
+        time: {
+            type : Date,
+            default : Date.now
+        }
     }]
 });
 const Messenger = new mongoose.model('Messenger', messageSchema);
@@ -147,8 +131,6 @@ const Messenger = new mongoose.model('Messenger', messageSchema);
 const userSchema = new mongoose.Schema({
     authID: String,
     email: String,
-    password: String,
-    username: String,
     verification: Boolean,
     subscribed_plan: String,
     plan_expiry: String,
@@ -156,26 +138,49 @@ const userSchema = new mongoose.Schema({
     subscription_id: String,
     mentor_status: Boolean,
     plan_status: Boolean,
+    plan_status_des : String,
+    manual_add : Boolean,
+    group_status : {
+        type : Boolean,
+        default : false,
+    },
+    group : {
+        type : mongoose.SchemaTypes.ObjectId,
+        ref : 'Group'
+    },
     plan_history: [{
-        subscribed_on_date: String,
-        transaction_id: String,
+        subscribed_on_date: Date,
         razorpay_payment_ID: String,
+        subscription_id : String,
         invoice_id: String,
         invoice_link: String
     }],
     enrolled_courses: [{
-        course_id: String,
-        course_title: String,
+        course: {
+            type : mongoose.SchemaTypes.ObjectId,
+            ref : 'Course'
+        },
         course_completion: Number,
-        course_plan: String
+        created_at : {
+            type : Date,
+            default : Date.now,
+        }
     }],
     current_mentor: {
-        mentor_auth_id: String,
-        mentor_email: String
+        mentor: {
+            type : mongoose.SchemaTypes.ObjectId,
+            ref : 'Mentor'
+        },
+        created_at : {
+            type : Date,
+            default : Date.now,
+        }
     },
     mentor_history: [{
-        mentor_auth_id: String,
-        mentor_email: String
+        mentor: {
+            type : mongoose.SchemaTypes.ObjectId,
+            ref : 'Mentor'
+        }
     }],
     tasks: [{
         task_name: String,
@@ -183,13 +188,17 @@ const userSchema = new mongoose.Schema({
         task_type: String,
         uploads: {
             type: mongoose.SchemaTypes.ObjectId,
-            ref: Upload
+            ref: 'Upload'
         },
-        date: {
+        created_at: {
             type: Date,
             default: Date.now
         }
-    }]
+    }],
+    created_at : {
+        type:Date,
+        default : Date.now
+    }
 });
 const User_Student = new mongoose.model('User_Student', userSchema);
 
@@ -218,14 +227,19 @@ const courseSchema = new mongoose.Schema({
             title: String,
             link: String
         }
-    }]
+    }],
+    created_at : {
+        type:Date,
+        default : Date.now
+    }
 });
-const Courses = new mongoose.model('course', courseSchema);
+const Courses = new mongoose.model('Course', courseSchema);
 
 const archiveSchema = new mongoose.Schema({
     archive_name: String,
     archive_description: String,
     archive_status: Boolean,
+    archive_type : String,
     modules: [{
         module_name: String,
         module_upload: {
@@ -233,7 +247,11 @@ const archiveSchema = new mongoose.Schema({
             ref: 'Upload'
         },
         module_description: String
-    }]
+    }],
+    created_at :{
+        type : Date,
+        default  : Date.now,
+    }
 });
 const Archive = new mongoose.model('archive', archiveSchema);
 
@@ -244,7 +262,11 @@ const announcmentSchema = new mongoose.Schema({
     target_user_status: Boolean,
     target_users: [{
         user_id: String
-    }]
+    }],
+    created_at : {
+        type:Date,
+        default : Date.now
+    }
 });
 const Announcments = new mongoose.model('announcement', announcmentSchema);
 
@@ -256,6 +278,10 @@ const planDetails = new mongoose.Schema({
     razorpay_plan_id: String,
     plan_type: String,
     plan_interval: Number,
+    created_at : {
+        type:Date,
+        default : Date.now
+    }
 });
 const Plan = new mongoose.model('plan', planDetails);
 
@@ -265,60 +291,106 @@ const mentorSchema = new mongoose.Schema({
     email: String,
     status: Boolean,
     students: [{
-        email: String,
-        authID: String,
-        subscribed_plan: String,
-        issueDate: {
+       student : {
+        type:mongoose.SchemaTypes.ObjectId,
+        ref : 'User_Student',
+        unique : true
+       },
+        created_at: {
             type: Date,
-            default: Date.now()
+            default: Date.now
         }
     }],
     assigned_courses: [{
-        course_id: {
+        course: {
             type: mongoose.SchemaTypes.ObjectId,
-            rel: Courses
+            rel: 'Courses'
         }
-    }]
+    }],
+
 });
 const Mentor = new mongoose.model('Mentor', mentorSchema);
 
 const groupSchema = new mongoose.Schema({
     email: String,
-    password: String,
     verification: Boolean,
     subscribed_plan: String,
     authID: String,
     plan_expiry: String,
     maximum_size: Number,
     razorpay_customer_id: String,
+    subscription_id : String,
+    mentor_status : {
+        type : Boolean,
+        default : false,
+    },
+    group_status : {
+        type : Boolean,
+        default : false
+    },
+    plan_initial_status : {
+        user_status : {
+            type : Boolean,
+            default : false
+        },
+        admin_status : {
+            type : Boolean,
+            default : false
+        }
+    },
+    plan_status : {
+        type : Boolean,
+        default : false
+    },
+    plan_status_des : String,
     group_members: [{
-        member_email: String,
-        member_auth_id: {
+        member: {
             type: mongoose.SchemaTypes.ObjectId,
-            rel: User_Student,
-            unique: true,
+            ref: 'User_Student',
         }
     }],
+    request : {
+        created_at : {
+            type : Date
+        },
+        maximum_size : Number,
+        plan : String,
+        members : [{
+            member_email : String,
+            member_auth_id : String
+        }],
+        request_status : {
+            type : Boolean,
+            default : false,
+        },
+        response_status : {
+            type : Boolean,
+            default:false
+        },
+        response_message : String  
+    },
     plan_history: [{
-        subscribed_plan_name: String,
-        subscribed_on_date: String,
-        subscribed_transaction_id: String,
+        created_at: {
+            type : Date
+        },
+        subscription_id: String,
         razorpay_payment_ID: String,
-        payment_link: {
-            razorpay_payment_link: String,
-            status: String
-        }
+        invoice_id : String,
+        invoice_link : String,
     }],
 
     current_mentor: {
-        mentor_authID: String,
-        mentor_email: String
+        mentor : {
+            type : mongoose.SchemaTypes.ObjectId,
+            ref: 'Mentor',
+        }
     },
     mentor_history: [{
-        mentor_id: String,
-        mentor_name: String
+        mentor : {
+            type : mongoose.SchemaTypes.ObjectId,
+            ref: 'Mentor',
+        }
     }],
-
 });
 const Group = new mongoose.model('group', groupSchema);
 
@@ -327,7 +399,11 @@ const allUsersSchema = new mongoose.Schema({
         type: String,
         unique: true
     },
-    role: String
+    role: String,
+    created_at :{
+        type : Date,
+        default : Date.now
+    }
 });
 const User = new mongoose.model('User', allUsersSchema);
 
@@ -335,12 +411,32 @@ const contactUsSchema = new mongoose.Schema({
     email: String,
     subject: String,
     message: String,
-    date: {
+    created_at: {
         type: Date,
         default: Date.now
     }
 });
 const Contact_Us = new mongoose.model('Contact Us', contactUsSchema);
+
+const homeSchema = new mongoose.Schema({
+    student_description : String,
+    mentor_description : String,
+    group_description : String,
+    featured_course_1 : {
+        type : mongoose.SchemaTypes.ObjectId,
+        ref : 'Course'
+    },
+    featured_course_2 : {
+        type : mongoose.SchemaTypes.ObjectId,
+        ref : 'Course'
+    },
+    featured_course_3 : {
+        type : mongoose.SchemaTypes.ObjectId,
+        ref : 'Course'
+    },
+    about_description : String,
+});
+const Home_Data_Model = new mongoose.model('Home_Data',homeSchema);
 
 passport.use(new LocalStrategy({
     passReqToCallback: true
@@ -356,6 +452,7 @@ passport.use(new LocalStrategy({
         }
     });
 }));
+
 passport.serializeUser((user, done) => {
     done(null, user.username);
 });
@@ -365,41 +462,31 @@ passport.deserializeUser((username, done) => {
     });
 });
 
-
-// const newPlan = new Plan({
-//     plan_name : "plus",
-//     plan_rate : 500,
-//     plan_curreny : "INR",
-//     razorpay_plan_id : "plan_KfUTdm9pE8pP94"
-// })
-
-// newPlan.save();
-
 // ############################### API CALLS  ##############
-
-
-
 
 app.get('/api/message/student/:studentID/mentor/:mentorID', requiresAuth(), (req, res) => {
     Messenger.findOne({
         _student_id: req.params.studentID,
         _mentor_id: req.params.mentorID
     }, (err, data) => {
-        res.json(data);
+        res.json({chats:err});
     });
 });
-
-
 
 app.get('/api/get/:role', requiresAuth(), (req, res) => {
     if (req.params.role === 'student') {
         User_Student.findOne({
             authID: req.oidc.user.sub
-        }, (err, data) => {
+        });
+        .populate('enrolled_courses.course','_id course_title subscription_plan modules.title')
+        .populate('current_mentor.mentor')
+        .exec((err, data) => {
             if (err) {
+                res.json({res : false})
                 console.log(err);
             } else {
                 res.json({
+                    res : true,
                     response: data,
                     imgURL: req.oidc.user.picture
                 });
@@ -408,18 +495,20 @@ app.get('/api/get/:role', requiresAuth(), (req, res) => {
     } else if (req.params.role === 'mentor') {
         Mentor.findOne({
             authID: req.oidc.user.sub
-        }, (err, data) => {
+        },(err, data) => {
             if (err) {
+                res.json({res:false})
                 console.log(err);
             } else {
                 res.json({
+                    res:true,
                     auth: true,
                     response: data,
                     imgURL: req.oidc.user.picture
                 });
             }
         });
-    } else if (req.params.role === 'parent') {
+    } else if (req.params.role === 'group') {
         Group.findOne({
             authID: req.oidc.user.sub
         }, (err, data) => {
@@ -442,8 +531,6 @@ app.get('/api/get/:role', requiresAuth(), (req, res) => {
         });
     }
 });
-
-
 
 app.post('/api/message/student/:studentID/mentor/:mentorID', requiresAuth(), (req, res) => {
     Messenger.updateOne({
@@ -468,64 +555,86 @@ app.post('/api/message/student/:studentID/mentor/:mentorID', requiresAuth(), (re
 });
 
 app.post('/api/enrollcourse', requiresAuth(), (req, res) => {
-    User_Student.findOne({
-        authID: req.oidc.user.sub
-    }, (err, Userdata) => {
-        Courses.findOne({
-            _id: req.body.course_id
-        }, '_id subscription_plan course_title', (err, courseData) => {
-            console.log(courseData.subscription_plan);
-            console.log(Userdata.subscribed_plan);
-
-            function authReq() {
-                if (courseData.subscription_plan === "free")
-                    return true;
-                else if (((courseData.subscription_plan === "pro" && (Userdata.subscribed_plan === "pro" || Userdata.subscribed_plan === "plus")) || (courseData.subscription_plan == 'plus' && (Userdata.subscribed_plan === "plus"))) && Userdata.plan_status)
-                    return true;
-                else
-                    return false;
-            }
-            if ((!err && authReq())) {
-                User_Student.updateOne({
-                    authID: req.oidc.user.sub
-                }, {
-                    $push: {
-                        enrolled_courses: {
-                            course_id: courseData._id,
-                            course_completion: 0,
-                            course_title: courseData.course_title,
-                            course_plan: courseData.subscription_plan
+    try {
+        User_Student.findOne({authID : req.oidc.user.sub})
+        .populate('group')
+        .select('_id subscribed_plan plan_status')
+        .exec((uerr,user)=>{
+            if(!uerr && user!=null){
+                Courses.findOne({ _id : req.body.course_id})
+               .exec((cerr,course)=>{
+                    if(!cerr && course !=null){
+                        async function validateReq(){
+                            if(course.subscription_plan === 'free'){
+                                return true;
+                            }else if (user.manual_add === true && user.group_status===false){
+                                if(((course.subscription_plan==='pro') && (user.subscribed_plan === 'pro' || user.subscribed_plan ==='plus')) || (course.subscription_plan ==='plus' && user.subscribed_plan ==='plus'))
+                                    return true;
+                                else 
+                                    return false;
+                            } else if (user.group_status){
+                                if((((course.subscription_plan ==='pro') && (user.group.subscribed_plan ==='pro' || user.group.subscribed_plan ==='plus')) || (course.group.subscribed_plan === 'plus' && user.group.subscribed_plan ==='plus')) && user.group.plan_status)
+                                    return true;
+                                else 
+                                    return false;
+                            }else if (((course.subscription_plan ==='pro' && user.subscribed_plan !='free') || (course.subscription_plan === 'plus' && user.subscribed_plan ==='plus')) && (user.plan_status && !user.manual_add)){
+                                return true;
+                            } else {
+                                return false;
+                            }
                         }
-                    }
-                }, (Usererr) => {
-                    if (!err) {
-                        res.sendStatus(200);
+                        validateReq().then(response=>{
+                             if(response){
+                                User_Student.updateOne({authID:req.oidc.user.sub},{
+                                    $push:{
+                                        enrolled_courses:{
+                                            course : course._id,
+                                            course_completion : 0,
+                                        }
+                                    }
+                                },(updateErr)=>{
+                                    if(!updateErr){
+                                        res.json({res:true});
+                                    } else {
+                                        res.json({res:false});
+                                        console.error(updateErr)
+                                    }
+                                });
+                            } else {
+                                res.json({res:false});
+                            }
+                        });
                     } else {
-                        res.sendStatus(500);
+                        res.json({res:false});
+                        if(cerr)
+                            console.error(cerr);
                     }
-                    res.end();
-                });
-            } else {
-                res.sendStatus(500);
-                console.log(err);
-            }
-
+               });
+           } else {
+            res.json({res:false});
+            if(uerr)
+                console.error(uerr)
+           }
         });
-    });
+    } catch (e) {
+        console.error(e);
+        res.json({res:false});
+    }
 });
 
 app.get('/api/explore', (req, res) => {
     Courses.find({
         status: true
-    }, '_id course_title course_features subscription_plan short_description', (err, data) => {
+    }, '_id course_title course_features subscription_plan short_description course_img ', (err, data) => {
         if (!err)
             res.json({
                 data: data,
-                auth: req.oidc.isAuthenticated()
+                auth: req.oidc.isAuthenticated(),
+                res:true
             });
         else {
             console.log(err);
-            res.sendStatus(500);
+            res.json({res : false});
         }
     });
 });
@@ -538,70 +647,147 @@ app.get('/api/explore/:courseID', (req, res) => {
         if (!err)
             res.json({
                 data: resData,
-                response: true,
+                res: true,
                 auth: req.oidc.isAuthenticated()
             });
         else
             res.json({
-                response: false
+                res: false
             });
         console.log(err);
     });
 });
 
+app.get('/api/archives',requiresAuth(),(req,res)=>{
+    try{
+        User_Student.findOne({authID : req.oidc.user.sub})
+        .populate('group')
+        .select('subscribed_plan plan_status group_status manual_add')
+        .exec((userErr, user)=>{
+            if(!userErr && user!=null){
+                async function validateReq () {
+                    if(user.manual_add && user.group_status===false){
+                        if((user.subscribed_plan==='pro'))
+                            return {access:true,query :{type:'pro'} };
+                        else if (user.subscribed_plan ==='plus')
+                            return {access : true, query : {}}
+                        else 
+                            return {access : false};
+                    } else if (user.group_status === true){
+                        if ((user.group.subscribed_plan==='pro' && user.group.plan_status ===true))
+                            return {access : true, query : {type : 'pro'}};
+                        else if (user.group.subscribed_plan ==='plus')
+                            return {access : true, query : {}}
+                        else 
+                            return false;
+                    } else if(user.subscribed_plan ==='pro' && user.plan_status === true){
+                        return {access : true, query : {type : 'pro'}};
+                    } else if (user.subscribed_plan ==='plus'){
+                        return {access : true, query :{}};
+                    } else {
+                        return {access : false};
+                    }
+                }
 
+                validateReq().then((response)=>{
+                    if(response.access){
+                        if (req.query?.id != undefined){
+                            Archive.findOne({_id : req.query.id})
+                            .populate('modules.module_upload')
+                            .exec((archiveErr,archiveData)=>{
+                                if (!archiveErr && archiveData !=null)
+                                res.json({res:true, access : true, archive_data : archiveData});
+                            });
+                        } else {
+                            Archive.find({response.query, status : })
+                            .exec((archiveErr, archiveData)=>{
+                                if(!archiveErr){
+                                    res.json({res:true, access : true, archive_data : archiveData});
+                                } else {
+                                    res.json({res:false});
+                                    console.error(archiveErr);
+                                }
+                            });
+                        }
+                        
+                    } else {
+                        res.json({res:true, access : false});
+                    }
+                });
+
+            } else {
+                res.json({res:false});
+                if(userErr)
+                    console.error(userErr);
+            } 
+        });
+    } catch(e){
+        res.json({res:false});
+        console.error(e);
+    }
+});
 
 app.get('/api/mylearning/:courseID', requiresAuth(), (req, res) => {
     User_Student.findOne({
         authID: req.oidc.user.sub
-    }, (err, data) => {
-        function getCourse() {
-            for (var iter = 0; iter < data.enrolled_courses.length; iter++) {
-                if (data.enrolled_courses[iter].course_id === req.params.courseID) {
-                    if (data.enrolled_courses[iter].course_plan === "free")
-                        return true;
-                    else if (data.enrolled_courses[iter].course_plan === 'pro' && (data.subscribed_plan === 'pro' || data.subscribed_plan === 'plus'))
-                        return true;
-                    else if (data.enrolled_courses[iter].course_plan === 'plus' && (data.subscribed_plan === 'plus'))
-                        return true;
-                    else
-                        return false;
+    })
+    .populate('group')
+    .populate('enrolled_courses.course')
+    .populate({path : 'enrolled_courses.course',populate:{path:'modules.upload'}})
+    .exec( (err, data) => {
+        if(!err && data!=null){
+             async function validateReq(){
+
+                for (var iter = 0; iter < data.enrolled_courses.length; iter++) {
+                    if (String(data.enrolled_courses[iter].course._id) === req.params.courseID) {
+                        if(data.manual_add===true && data.group_status === false){
+                            if (((data.enrolled_courses[iter].course.subscription_plan === 'pro') && (data.subscribed_plan === 'pro' || data.subscribed_plan === 'plus')) || (data.enrolled_courses[iter].course.subscription_plan === 'plus' && (data.group.subscribed_plan === 'plus')))
+                                return {access : true, pos : iter};
+                            else 
+                                return { access:false}
+                        } else if (data.group_status === true) {
+                            if ((((data.enrolled_courses[iter].course.subscription_plan === 'pro') && (data.group.subscribed_plan === 'pro' || data.group.subscribed_plan === 'plus')) || (data.enrolled_courses[iter].course.subscription_plan === 'plus' && (data.group.subscribed_plan === 'plus'))) && data.group.plan_status === true)
+                                return {access : true, pos : iter}
+                            else 
+                                return {access : false}
+                        } 
+                        else if (data.enrolled_courses[iter].course.subscription_plan === "free" && data.manual_add === false)
+                                return {access : true, pos : iter};
+                        else if ((((data.enrolled_courses[iter].course.subscription_plan === 'pro') && (data.subscribed_plan === 'pro' || data.subscribed_plan === 'plus')) || ((data.enrolled_courses[iter].course.subscription_plan) === 'plus' && (data.subscribed_plan === 'plus'))) && (data.plan_status && !data.manual_add))
+                                return {access : true, pos : iter};
+                        else
+                                return {access : false};
+                    } 
                 }
+                return {access : false};
+
             }
-            return false
-        }
-        if (getCourse()) {
-            Courses.findOne({
-                _id: req.params.courseID,
-                status: true
-            }, (cerr, courseData) => {
-                if (!cerr) {
-                    res.json({
-                        course_data: courseData,
-                        user_data: data,
-                        access: true
-                    })
+            validateReq().then((response)=>{
+                if(response.access){
+                    res.json({res:true, course_data :data.enrolled_courses[response.pos].course, access:true});
+                } else {
+                    res.json({res:true,access:false})
                 }
             });
         } else {
-            res.json({
-                access: false
-            })
+            res.json({res:true});
+            if(err)
+                console.error(err);
         }
-
     });
 });
 
 app.post('/api/mylearning/:courseID/:moduleNum', requiresAuth(), (req, res) => {
     User_Student.updateOne({
         authID: req.oidc.user.sub,
-        "enrolled_courses.course_id": req.params.courseID
+        "enrolled_courses.course": req.params.courseID
     }, {
-        "enrolled_courses.$.course_completion": req.params.moduleNum
+        "enrolled_courses.$.course_completion": parseInt(req.params.moduleNum)
     }, (err) => {
         if (!err)
-            res.sendStatus(200);
+            res.json({res:true});
         else
+            res.json({res:false});
             console.log(err);
     });
 });
@@ -615,24 +801,86 @@ app.get('/api/verify', (req, res) => {
                 res.json({
                     auth: true,
                     imgURL: req.oidc.user.picture,
-                    role: data.role
+                    role: data.role,
+                    res : true,
                 });
             } else {
+                res.json({res:false})
                 console.error(err);
             }
         });
     } else {
         res.json({
+            res : true,
             auth: false
         });
     }
 });
 
-// ########## VIDEO STREAMING
+app.get('/api/user/profile',requiresAuth(),(req,res)=>{
+    if(req.query.role === 'student'){
+        User_Student.findOne({authID : req.oidc.user.sub})
+        .populate('current_mentor.mentor')
+        .exec((err,userData)=>{
+            if(!err && userData !=null){
+                if (userData.subscribed_plan !='free'){
+                    razorInstance.subscriptions.fetch(userData.subscription_id,((subErr,subData)=>{
+                        if(!subErr){
+                            res.json({user_data: userData, subscription_data : subData, res:true, img_url : req.oidc.user.picture});
+                        } else {
+                            res.json({res:false});
+                            console.log(subErr);
+                        }
+                    }));
+                } else {
+                    res.json({res:true,user_data : userData, img_url : req.oidc.user.picture});
+                }
+                
+            } else {
+                res.json({res:false});
+                console.error(err);
+            }
+        });
+
+    } else if(req.query.role == 'mentor') {
+        Mentor.findOne({authID : req.oidc.user.sub})
+        .populate('students.student')
+        .exec((err,data)=>{
+            if(!err){
+                res.json({res : true,user_data : data, img_url : req.oidc.user.picture});
+            } else {
+                res.json({res:false});
+                console.error(err);
+            }
+        });
+    } else if (req.query.role == 'group'){
+        Group.findOne({authID : req.oidc.user.sub})
+        .populate('group_members.member')
+        .exec((err,data)=>{
+            if(data != null && !err ){
+                if(data.plan_initial_status.admin_status){
+                razorInstance.subscriptions.fetch(data.subscription_id,(subErr,subData)=>{
+                    res.json({res:true,user_data : data, subscription : subData, img_url : req.oidc.user.picture});
+                });
+                } else {
+                    res.json({res:true, user_data : data, img_url : req.oidc.user.picture});
+                }
+            } else {
+                res.json({res:false});
+                if(err)
+                    console.log(err)
+            }
+            
+        });
+    } else {
+        res.json({res_mess:'Invalid URL',res:false})
+    }
+});
+
 
 // ######## LOGIN/SIGN UP METHODS
 app.get('/api/login', (req, res) => {
-    if (req.query.role === "student" || req.query.role === "mentor" || req.query.role === "parent") {
+    if (req.query.role === "student" || req.query.role === "mentor" || req.query.role === "group") {
         res.oidc.login({
             returnTo: '/api/profile?role=' + req.query.role
         });
@@ -655,12 +903,13 @@ app.get('/api/log-out', (req, res) => {
 
 // Redirect to Profile
 app.get('/api/profile', requiresAuth(), (req, res) => {
-    if (req.query.role === "student" || req.query.role === "mentor" || req.query.role === "parent") {
+    if (req.query.role === "student" || req.query.role === "mentor" || req.query.role === "group") {
         User.findOne({
             authID: req.oidc.user.sub
         }, (err, data) => {
             if (err || data) {
-                console.log(err || "User Already Exists");
+                if(err)
+                    console.error(err);
 
             } else {
                 const newUser = new User({
@@ -677,12 +926,12 @@ app.get('/api/profile', requiresAuth(), (req, res) => {
             authID: req.oidc.user.sub
         }, (err, data) => {
             if (err || data) {
-                console.log(err || "Email Already Exists");
+                if(err)
+                    console.error(err);
             } else {
                 const newMentor = new Mentor({
                     authID: req.oidc.user.sub,
                     email: req.oidc.user.email,
-                    username: req.oidc.user.username,
                     students: [],
                     status: false,
                     assigned_courses: []
@@ -733,11 +982,11 @@ app.get('/api/profile', requiresAuth(), (req, res) => {
             res.redirect(process.env.APP_URL + '/dashboard/student/courses');
         });
 
-    } else if (req.query.role === "parent") {
+    } else if (req.query.role === "group") {
         Group.findOne({
             authID: req.oidc.user.sub
         }, (err, data) => {
-            if (data == null) {
+            if (data == null && !err) {
                 razorInstance.customers.create({
                     name: req.oidc.user.username,
                     email: req.oidc.user.email,
@@ -746,50 +995,50 @@ app.get('/api/profile', requiresAuth(), (req, res) => {
                         authID: req.oidc.user.sub
                     }
                 }, (cusErr, newCustomer) => {
-                    if (!err) {
+                    if (!cusErr) {
                         const newGroup = new Group({
                             authID: req.oidc.user.sub,
                             email: req.oidc.user.email,
-                            username: req.oidc.user.username,
-                            subscription_plan: "free",
+                            subscribed_plan: "free",
                             maximum_size: 0,
                             razorpay_customer_id: newCustomer.id
                         });
                         newGroup.save((serr) => {
-
-                            if (serr) {
-                                res.sendStatus(500);
+                            if (serr == null) {
+                                res.redirect(process.env.APP_URL + '/dashboard/group/profile');
+                            } else {
+                                res.send("Page Not Found!");
                                 console.log(serr);
                             }
-                        })
-
+                        });
+                    } else {
+                        res.send("Page Not Found!");
+                        console.log(cusErr);
                     }
                 });
-            } else if (err) {
-                res.sendStatus(500);
+            } else if (err != null) {
+                res.send("Page Not Found!" + err?.description);
                 console.log(err);
-            }
-            res.redirect(process.env.APP_URL + '/dashboard/parent/profile');
+            } else if (data != null ) {
+                res.redirect(process.env.APP_URL + '/dashboard/group/profile');
+            } 
         });
     } else {
-        res.sendStatus(500);
-        console.log("Invalid URL");
+        res.send('Invalid URL');
     }
 
 });
 
-
-//HOME PAGE VERIFY AUTHENTICATION
 // ########## PAYMENT METHODS
 
-app.get('/api/payment/:planID', requiresAuth(), (req, res) => {
-    if (req.query.role === "student") {
+app.get('/api/payment/', requiresAuth(), (req, res) => {
+    if (req.query.role === "student" && req.query.status ==="create" && (req.query.type==='pro' || req.query.type==='plus' )) {
         User_Student.findOne({
             authID: req.oidc.user.sub
         }, (err, data) => {
             if (!err) {
                 razorInstance.subscriptions.create({
-                    plan_id: req.params.planID,
+                    plan_id: req.query.plan,
                     customer_id: data.razorpay_customer_id,
                     quantity: 1,
                     total_count: 12,
@@ -803,8 +1052,9 @@ app.get('/api/payment/:planID', requiresAuth(), (req, res) => {
                             subscription_id: subData.id,
                             key: process.env.RAZOR_KEY_ID,
                             role: "student",
-                            planID: req.query.plan,
-                            user: data
+                            planID: req.query.type,
+                            user: data,
+                            status : 'create'
                         });
                     }
                 });
@@ -813,45 +1063,109 @@ app.get('/api/payment/:planID', requiresAuth(), (req, res) => {
                 console.log(err);
             }
         })
-    } else {
-        res.sendStatus(500);
+    } else if (req.query.role == 'student' && req.query.status=='renew') {
+        User_Student.findOne({authID : req.oidc.user.sub})
+        .exec((err,data)=>{
+            res.render('paymentPage',{
+                subscription_id : data.subscription_id,
+                key : process.env.RAZOR_KEY_ID,
+                role : 'student',
+                planID : req.query.type,
+                user : data,
+                status : 'renew'
+            })
+        });
+    } else if(req.query.role=='group'){
+        Group.findOne({
+            authID : req.oidc.user.sub
+        })
+        .exec((err,data)=>{
+            res.render('PaymentPage',{
+                subscription_id : data.subscription_id,
+                key : process.env.RAZOR_KEY_ID,
+                role : 'group',
+                user : data,
+                status : 'null',
+                planID : 'group',
+            })
+        })
     }
 });
 
 app.post('/payment-success', requiresAuth(), (req, res) => {
-    console.log(req.body);
     const body = req.body.razorpay_payment_id + '|' + req.query.subscriptionid;
     const expectedSignature = crypto.createHmac('sha256', process.env.RAZOR_KEY_SECRET).update(body.toString()).digest('hex');
-    console.log(expectedSignature, req.query.subscriptionid);
     if (expectedSignature === req.body.razorpay_signature) {
-        if (req.query.role = "student" && req.query.planId == ("pro" || "plus")) {
+        if (req.query.roleType === "student" && (req.query.planId == "pro" || req.query.planId === "plus") && req.query.status =='create') {
             User_Student.updateOne({
                 authID: req.oidc.user.sub
             }, {
                 subscribed_plan: req.query.planId,
                 subscription_id: req.query.subscriptionid,
-                subscription_status: true,
+                plan_status: true,
                 $push: {
                     plan_history: {
                         subscribed_on_date: Date.now(),
                         razorpay_payment_ID: req.body.razorpay_payment_id,
+                        subscription_id : req.query.subscriptionid
                     }
                 }
             }, (err) => {
                 if (!err) {
-                    res.redirect(process.env.APP_URL + '/dashboard/student/courses');
+                    res.redirect(process.env.APP_URL + '/dashboard/student/profile');
                 } else {
+                    res.send('Something Went Wrong! Try again later')
                     console.log(err);
                 }
             });
+        } else if (req.query.roleType === 'student' && req.query.status == 'renew'){
+            User_Student.updateOne({
+                authID : req.oidc.user.sub
+            },{
+                plan_status : true,
+                $push : {
+                    plan_history : {
+                        subscribed_on_date : Date.now(),
+                        razorpay_payment_ID : req.body.razorpay_payment_id,
+                        subscription_id : req.query.subscriptionid,
+                    }
+                }
+            },(err)=>{
+                if(!err)
+                    res.redirect(process.env.APP_URL + '/dashboard/student/profile');
+                else {
+                    res.send('Something Went Wrong! Try again Later');
+                    console.error(err);
+                }
+            });
+        } else if(req.query.roleType === 'group'){
+            Group.updateOne({
+                authID : req.oidc.user.sub
+            },{
+                plan_status : true,
+                "plan_initial_status.user_status" : true,
+                $push:{
+                    plan_history : {
+                        subscription_id : req.query.subscriptionid,
+                        razorpay_payment_ID : req.body.razorpay_payment_id,
+                    }
+                }
+            },(err)=>{
+                if(!err){
+                    res.redirect(process.env.APP_URL +'/dashboard/group/profile')
+                }
+            })
+        } else {
+            res.send('!Invalid User type');
         }
     } else {
+        
         res.send('Invalid Credentials! Retry Payment');
     }
 });
 
-// ###### ADMIN CALLS
 
+// ###### ADMIN CALLS
 app.get('/', (req, res) => {
     if (!req.isAuthenticated())
         res.render('admin_login');
@@ -868,7 +1182,7 @@ app.post('/', passport.authenticate('local', {
 async function* loadYieldResponse() {
     yield await User.find({});
     yield await User_Student.find({}).sort({
-        date: -1
+        created_at: -1
     });
     yield await Courses.find({}).count();
     yield await Mentor.find({}, {}, {
@@ -916,22 +1230,20 @@ app.get('/admin', (req, res) => {
 
         });
     }
-
-
 });
 
 app.get('/admin/students', (req, res) => {
     if (!req.isAuthenticated()) {
         res.redirect('/');
     } else {
-        User_Student.find({}, (err, data) => {
+        User_Student.find({})
+        .populate('current_mentor.mentor')
+        .exec( (err, data) => {
             res.render('students', {
                 data: data
             });
         });
     }
-
-
 });
 
 app.get('/admin/mentors', (req, res) => {
@@ -944,51 +1256,25 @@ app.get('/admin/mentors', (req, res) => {
             });
         });
     }
-
 });
 
 app.get('/admin/student/:id', (req, res) => {
     if (!req.isAuthenticated()) {
         res.redirect('/');
     } else {
-
         User_Student.findOne({
-            _id: req.params.id
-        }, (err, data) => {
-            if (!err) {
-                Mentor.find({
-                    status: true
-                }, 'email _id', (merr, mentorData) => {
-                    if (!merr)
-                        res.json({
-                            data: data,
-                            mentorList: mentorData
-                        });
-                });
-
+            _id:req.params.id
+        })
+        .populate('current_mentor.mentor','email')
+        .exec((err,data)=>{
+            if(!err){
+                res.json({data:data, res : true});
             } else {
-                res.send('ERROR 404! Page Not Found');
+                console.error(err);
+                res.json({res : false})
             }
         });
     }
-
-
-});
-
-app.get('/admin/groups', (req, res) => {
-
-    if (!req.isAuthenticated()) {
-        res.redirect('/');
-    } else {
-        Group.find({}, (err, data) => {
-            if (!err)
-                res.render('group', {
-                    data: data
-                });
-        });
-    }
-
-
 });
 
 app.get('/admin/mentor/:id', (req, res) => {
@@ -1008,20 +1294,16 @@ app.get('/admin/mentor/:id', (req, res) => {
             }
         });
     }
-
-
 });
-
 
 app.get('/admin/groups', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
     } else {
-
         Group.find({}, (err, data) => {
             if (err == null) {
-                res.render('groups', {
+                res.render('group', {
                     data: data
                 });
             } else {
@@ -1030,10 +1312,31 @@ app.get('/admin/groups', (req, res) => {
             }
         });
     }
-
 });
 
-
+app.get('/admin/groups/get/:id',(req,res)=>{
+    if(!req.isAuthenticated()){
+        res.redirect('/');
+    } else {
+        try{
+            Group.findOne({_id : req.params.id})
+            .populate('current_mentor.mentor')
+            .populate('mentor_history.mentor')
+            .populate('group_members.member')
+            .exec((err,data)=>{
+                if(!err) {
+                    res.json({res:true,group_data : data});
+                } else {
+                    res.json({res:false});
+                    console.error(err);
+                }
+            });
+        } catch(e) {
+            res.json({res:false});
+            console.error(e);
+        }
+    }
+});
 
 app.get('/admin/plans', (req, res) => {
 
@@ -1048,12 +1351,9 @@ app.get('/admin/plans', (req, res) => {
             }
         });
     }
-
-
 });
 
 app.post('/admin/plan', (req, res) => {
-
     if (!req.isAuthenticated()) {
         res.redirect('/');
     } else {
@@ -1089,12 +1389,7 @@ app.post('/admin/plan', (req, res) => {
             }
         });
     }
-
-
-
 });
-
-
 
 app.post('/admin/access/:id', (req, res) => {
 
@@ -1113,10 +1408,7 @@ app.post('/admin/access/:id', (req, res) => {
             }
         });
     }
-
-
-
-});
+})
 
 app.get('/admin/get/mentor', (req, res) => {
 
@@ -1128,15 +1420,44 @@ app.get('/admin/get/mentor', (req, res) => {
         }, "authID email", (err, data) => {
             if (!err) {
                 res.json({
+                    res:true,
                     mentors: data
                 });
             } else {
+                res.json({res:false})
                 console.error(err);
             }
         });
     }
+});
 
+app.get('/admin/get/plans',(req,res)=>{
+    if(!req.isAuthenticated()){
+        res.redirect('/');
+    } else {
+        Plan.find({plan_type : 'group'},(err,data)=>{
+            if(!err){
+                res.json({res:true,plans:data});
+            } else {
+                res.json({res:false});
+            }
+        });
+    }
+});
 
+app.get('/admin/get/users',(req,res)=>{
+    if(!req.isAuthenticated()){
+        res.redirect('/');
+    } else {
+        User_Student.find({},'_id email',( err, data)=>{
+            if(!err){
+                res.json({res:true,users:data});
+            } else {
+                res.json({res:false});
+                console.error(err);
+            }
+        })
+    }
 });
 
 app.post('/admin/assignMentor', (req, res) => {
@@ -1144,38 +1465,33 @@ app.post('/admin/assignMentor', (req, res) => {
     if (!req.isAuthenticated()) {
         res.redirect('/');
     } else {
-        const mentor_data = {
-            "mentor_auth_id": req.body.mentor_authID,
-            "mentor_email": req.body.mentor_email
-        };
         User_Student.updateOne({
-            authID: req.body.student_authID
+            _id: req.body.student_id
         }, {
             $set: {
-                "current_mentor.mentor_auth_id": req.body.mentor_authID,
-                "current_mentor.mentor_email": req.body.mentor_email
+                "current_mentor.mentor": req.body.mentor_id,
             },
             "mentor_status": true,
             "$push": {
-                "mentor_history": mentor_data
+                "mentor_history": {
+                    mentor : req.body.mentor_id
+                } 
             }
         }, (err) => {
             if (err == null) {
                 Mentor.updateOne({
-                    authID: req.body.mentor_authID
+                    _id: req.body.mentor_id
                 }, {
                     $push: {
                         students: {
-                            email: req.body.student_email,
-                            authID: req.body.student_authID,
-                            subscribed_plan: req.body.student_plan
+                            student : req.body.student_id
                         }
                     }
                 }, (Menerr) => {
                     if (Menerr == null) {
                         Messenger.findOne({
-                            _student_id: req.body.student_authID,
-                            _mentor_id: req.body.mentor_authID
+                            _student_id: req.body.student_id,
+                            _mentor_id: req.body.mentor_id
                         }, (Meserr, MesData) => {
                             if (Meserr == null && MesData == null) {
                                 const newMessage = new Messenger({
@@ -1191,7 +1507,7 @@ app.post('/admin/assignMentor', (req, res) => {
                                 });
                             } else if (Meserr != null) {
                                 res.sendStatus(403);
-                                console.error("Mes", Meserr);
+                                console.error("Messenger Error:", Meserr);
                             } else {
                                 res.sendStatus(200);
                             }
@@ -1199,19 +1515,17 @@ app.post('/admin/assignMentor', (req, res) => {
 
                     } else {
                         res.sendStatus(403);
-                        console.error("Men", Menerr);
+                        console.error("Mentor Error : ", Menerr);
                     }
                 })
 
             } else {
                 res.sendStatus(403);
-                console.log("User", err);
+                console.log("User Student Error ", err);
             }
 
         });
     }
-
-
 });
 
 app.post('/admin/assigncourse', (req, res) => {
@@ -1224,7 +1538,7 @@ app.post('/admin/assigncourse', (req, res) => {
         }, {
             $push: {
                 assigned_courses: {
-                    course_id: req.body.course_id
+                    course: req.body.course_id
                 }
             }
         }, (err) => {
@@ -1236,8 +1550,6 @@ app.post('/admin/assigncourse', (req, res) => {
             res.end();
         });
     }
-
-
 });
 
 app.get('/admin/courses', (req, res) => {
@@ -1259,8 +1571,6 @@ app.get('/admin/courses', (req, res) => {
 
             });
     }
-
-
 });
 
 app.post('/admin/post/course', (req, res) => {
@@ -1272,11 +1582,10 @@ app.post('/admin/post/course', (req, res) => {
         let formData = new Map();
         let bufs = [];
         req.busboy.on('field', (fieldName, fieldValue) => {
-            console.log(fieldName, fieldValue);
             formData.set(fieldName, fieldValue);
         });
         req.busboy.on('file', (fileName, file, fileInfo, encoding, minitype) => {
-
+            formData.set('mini-type',minitype);
             file.on('data', (data) => {
                 if (data != null)
                     bufs.push(data);
@@ -1287,11 +1596,12 @@ app.post('/admin/post/course', (req, res) => {
             const newCourse = new Courses({
                 course_title: formData.get('title'),
                 course_features: formData.get('features'),
-                course_description: formData.get('short-des'),
+                short_description: formData.get('short-des'),
+                course_description: formData.get('course-des'), 
                 subscription_plan: formData.get('plan'),
                 course_img: {
                     image: Buffer.concat(bufs),
-                    content_type: 'image/png'
+                    content_type: formData.get('mini-type')
                 },
                 status: false,
                 modules: []
@@ -1305,11 +1615,7 @@ app.post('/admin/post/course', (req, res) => {
             });
         });
     }
-
-
-
 });
-
 
 app.post('/admin/post/module', async (req, res) => {
 
@@ -1336,11 +1642,11 @@ app.post('/admin/post/module', async (req, res) => {
                             content: req.body.module_content,
                             upload: uploadData._id,
                             module_status: false,
-                            // notes_status:req.body.notes_status,
-                            // notes : {
-                            //     notes_title:req.body.notes_title,
-                            //     notes_link : req.body.notes_link
-                            // } 
+                            notes_status:req.body.notes_status,
+                            notes : {
+                                notes_title:req.body?.notes_title,
+                                notes_link : req.body?.notes_link
+                            } 
                         }
                     }
                 }, (courerr) => {
@@ -1413,10 +1719,26 @@ app.post('/admin/post/access/:query', (req, res) => {
                 else
                     console.log(err);
             });
+        } else if( req.params.query === 'group'){
+            Group.updateOne({
+                authID: req.body.group_auth_id
+            },{ 
+                $set : {
+                    group_status : req.body.group_status,
+                }
+            },(err)=>{
+                if(!err){
+                    res.json({res:true});
+                } else{
+                    res.json({res:false});
+                    console.error(err);
+                }
+            })
         } else
             res.sendStatus(403);
     }
 });
+
 app.get('/admin/courses/:courseID', (req, res) => {
 
     if (!req.isAuthenticated()) {
@@ -1447,7 +1769,6 @@ app.post('/admin/post/user', (req, res) => {
         const newUser = {
             email: req.body.email,
             password: req.body.password,
-            username: req.body.username,
             connection: "Guite-Site-AuthDB"
         };
         try {
@@ -1456,16 +1777,17 @@ app.post('/admin/post/user', (req, res) => {
                     const newUserStudent = new User_Student({
                         email: user.email,
                         authID: user.user_id,
-                        mentor_access: true,
+                        mentor_status: true,
                         subscribed_plan: req.body.plan,
                         subscription_status: true,
                         manual_add: true,
+                        group_status : false,
                         mentors: []
                     });
-                    newUserStudent.save((saveErr) => {
+                    newUserStudent.save((saveErr,userData) => {
                         if (!err)
                             res.json({
-                                res: true
+                                res: true, id : userSchema._id
                             });
                         else {
                             res.json({
@@ -1473,7 +1795,6 @@ app.post('/admin/post/user', (req, res) => {
                             });
                             console.error(saveErr);
                         }
-
                     });
                 } else {
                     res.json({
@@ -1489,10 +1810,197 @@ app.post('/admin/post/user', (req, res) => {
             });
         }
     }
-
-
 });
 
+app.post('/admin/group/assign',(req,res)=>{
+    if(!req.isAuthenticated()){
+        res.redirect('/');
+    } else {
+        try {
+            Group.updateOne({
+                _id : req.body.group_id
+            },{
+                "current_mentor.mentor" : req.body.mentor_id,
+                mentor_status : true,
+                $push : {
+                    mentor_history : {
+                        mentor : req.body.mentor_id
+                    }
+                }
+            },(err)=>{
+                if(!err){
+                    Mentor.updateOne({_id : req.body.mentor_id}, {
+                        $push : {
+                            group_students : {
+                                group : req.body.group_id
+                            }
+                        }
+                    },(merr)=>{
+                        if(!merr){
+                            res.json({res : true});
+                        } else {
+                            res.json({res : false});
+                        }
+                    });
+                } else {
+                    res.json({res:false});
+                    console.error(err);
+                }
+            });
+        } catch(e) {
+            res.json({res:false});
+            console.error(e);
+        }   
+    }
+});
+
+app.post('/admin/group/update',(req,res)=>{
+    if (!req.isAuthenticated()){
+        res.redirect('/');
+    } else {
+        razorInstance.subscriptions.create({
+            plan_id : req.body.plan_id,
+            customer_id : req.body.customer_id,
+            quantity : req.body.quantity,
+            total_count : req.body.count,
+            notes : {
+                role : 'group',
+                authID : req.body.auth_id,
+            }
+        },(subErr,subData)=>{
+            if(!subErr) {
+                Group.updateOne({
+                    authID : req.body.auth_id,
+                },{
+                    "subscribed_plan" : req.body.plan_type,
+                    "subscription_id" : subData.id,
+                    "plan_initial_status.admin_status" : true,
+                    "plan_initial_status.user_status" : false,
+                    "plan_status" : false,
+                },(err,groupData)=>{
+                    if(!err){
+                        res.json({res:true});  
+                    } else {
+                        res.json({res:false});
+                        console.error(err);
+                    }
+                });
+            } else {
+                res.json({res:false});
+                console.error(subErr);
+            }
+        });
+    }
+});
+
+app.post('/admin/group/user',(req,res)=>{
+    if(!req.isAuthenticated()){
+        res.redirect('/');
+    } else {
+        if(req.body.user_type ==='new'){
+            const newUser = {
+                email: req.body.email,
+                password: req.body.password,
+                connection: "Guite-Site-AuthDB"
+            };
+            try {
+                AuthManager.users.create(newUser, (err, user) => {
+                    if (!err) {
+                        if(req.body?.role ==='group'){
+                            const newGroup = new Group({
+                                email : req.body.email,
+                                authID : user.user_id,
+                                plan_status : false,
+                                group_status : false,
+                                subscribed_plan : 'free'
+                            });
+                            newGroup.save(groupErr=>{
+                                if(!groupErr){
+                                    res.json({res:true});
+
+                                } else {
+                                    res.json({res:false});
+                                    console.error(groupErr);
+                                }
+                            });
+                        } else {
+                            const newUserStudent = new User_Student({
+                                email: user.email,
+                                authID: user.user_id,
+                                subscribed_plan: 'free',
+                                manual_add: true,
+                                group_status : true,
+                                mentors: [],
+                                group : req.body.group_id,
+                            });
+                            newUserStudent.save((saveErr,userData) => {
+                                if (!err){
+                                    
+                                    Group.updateOne({
+                                        _id : req.body.group_id
+                                    },{
+                                        $push : {
+                                            group_members : {
+                                                member : userData._id
+                                            }
+                                        }
+                                    },(groupErr)=>{
+                                        if(!groupErr){
+                                            res.json({
+                                                res: true, id : userSchema._id
+                                            });
+                                        }else {
+                                            res.json({
+                                                res : false,
+                                            });
+                                            console.error(groupErr);
+                                        }
+                                    });
+                                } else {
+                                    res.json({
+                                        res: false
+                                    });
+                                    console.error(saveErr);
+                                }
+                            });
+                        }
+                        
+                    } else {
+                        res.json({
+                            res: false
+                        });
+                        console.error(err);
+                    }
+                });
+            } catch (err) {
+                console.error(err);
+                res.json({
+                    res: false
+                });
+            }
+        } else if(req.body.user_type ==='existing'){
+            Group.updateOne({
+                _id : req.body.group_id
+            },{
+                $push :{
+                    group_members : {
+                        member : req.body.user_id,
+                    }
+                }
+            },(err)=>{
+                if(!err){
+                    res.json({res:true})
+                } else {
+                    res.json({res:false});
+                    console.log(err);
+                }
+                
+            })
+        } else {
+            res.json({res:false});
+        }
+    } 
+});
 
 app.get('/admin/archives', (req, res) => {
 
@@ -1514,8 +2022,6 @@ app.get('/admin/archives', (req, res) => {
             console.error(err);
         }
     }
-
-
 });
 
 app.post('/admin/archives/category', (req, res) => {
@@ -1527,6 +2033,7 @@ app.post('/admin/archives/category', (req, res) => {
             archive_name: req.body.archive_name,
             archive_description: req.body.archive_description,
             archive_status: false,
+            archive_type : req.body.plan,
             modules: []
         }, (err) => {
             if (!err) {
@@ -1541,8 +2048,6 @@ app.post('/admin/archives/category', (req, res) => {
             }
         });
     }
-
-
 });
 
 app.post('/admin/archives/access', (req, res) => {
@@ -1596,8 +2101,6 @@ app.get('/admin/archives/get/:id', (req, res) => {
             });
 
     }
-
-
 });
 
 app.post('/admin/archives/module', async (req, res) => {
@@ -1638,18 +2141,7 @@ app.post('/admin/archives/module', async (req, res) => {
         });
 
     }
-
-
 });
-
-
-// ######### Files Serving
-
-app.get('/sources/js/passwordscript', (req, res) => {
-    res.sendFile(__dirname + "/passwordValidate.js");
-});
-
-
 // ######## Webhhook
 app.post('/mux/webhook', (req, res) => {
     if (req.body.data.status === "ready" && req.body.type === "video.asset.ready") {
@@ -1666,15 +2158,7 @@ app.post('/mux/webhook', (req, res) => {
         } catch (err) {
             console.error(err);
         }
-        // Courses.updateOne({
-        //     "modules.mux_upload_id": req.body.data.upload_id
-        // }, {
-        //     "modules.$.mux_asset_id": req.body.object.id,
-        //     "modules.$.playback_id": req.body.data.playback_ids[0].id
-        // }, (err) => {
-        //     if (err)
-        //         console.log(err);
-        // });
+       
     }
 });
 

@@ -1,6 +1,6 @@
 <% include('partials/header')  %> 
     <div class="container border-2  h-5/6 w-4/5 flex mx-20 mt-20">
-        <div class="left bg-blue-700 h-5/6 w-80 p-8">
+        <div class="left bg-emerald-400 h-5/6 w-80 p-8">
             <div>
                 <p class="text-white  mt-5 capitalize"><%=locals.role%> Payment</p>
                 <h1 class="text-white font-bold text-xl mt-2">Guitar</h1>
@@ -15,18 +15,20 @@
             <img class="h-10 w-48 mt-5" src="razorpay.png" alt="" srcset="">
             <hr class="mt-8">
             <ul class="mt-10">
-                <% if(locals.plan == "pro") { %> 
+                <% if(locals.planID == "pro") { %> 
                 <li> <a class=" font-bold text-2xl " href="">Guitar Pro Subscription(1 Month)</a></li>
                 <% } else {  %>
                 <li> <a class=" font-bold text-2xl " href="">Guitar Pro Plus Subscription(1 Month)</a></li>
                 <% } %> 
             </ul>
             <br>
-            <button id="rzp" class="bg-blue-500 font-bold text-xl text-white hover:bg-blue-700 p-2 px-10 rounded justify-center"> <i class="fa-regular fa-credit-card"></i> Pay </button>
+            <button id="rzp" class="bg-emerald-400 font-bold text-xl text-white hover:bg-blue-700 p-2 px-10 rounded justify-center"> <i class="fa-regular fa-credit-card"></i> Pay </button>
         </div>
     </div>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
+        const callback_url = "http://localhost:3001/payment-success?planId=<%=locals.planID%>&roleType=<%=locals.role%>&subscriptionid=<%=locals.subscription_id%>&status=<%=locals?.status%>";
+        console.log(callback_url);
         var options = {
             "key": "<%= locals.key %>", 
             "currency": "INR",
@@ -34,8 +36,8 @@
             "description": "",
             "image": "",
             "timeout" : 300,
-            "subscription_id": "<%= locals.subscription_id %>", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
-            "callback_url":"/payment-success?planId=<%=locals.planID%>&role=<%=locals.role%>&subscriptionid=<%=locals.subscription_id%>",
+            "subscription_id": "<%= locals.subscription_id %>",
+            "callback_url":callback_url,
             "redirect" : true,
             "prefill": {
                 "email": "<%= locals.user.email%>"
@@ -51,6 +53,7 @@
         var rzp1 = new Razorpay(options);
         rzp1.on('payment.failed', function (response) {
             alert(response.error.description);
+            console.log(response);
         });
         document.getElementById('rzp').onclick = function (e) {
             rzp1.open();

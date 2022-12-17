@@ -57,12 +57,12 @@
                     <td scope=""> <%= element.email %></td>
                     <td scope="" class="capitalize"><%= element.subscribed_plan%></td>
                     <% if ((element.subscriped_plan != "free") && element.mentor_status ==true)  { %>
-                    <td scope="" > <%=element.current_mentor.mentor_email %></td>
+                    <td scope="" > <%=element.current_mentor.mentor.email %></td>
                     <% } else { %>
                     <td>-</td>
                     <% } %>
                     <td> <button id="<%=element._id%>" onclick="handleViewClick(this)"
-                            class="bg-emerald-400 px-2 py-1 text-white rounded-md">View</button> </td>
+                            class="bg-emerald-400 px-2 py-1 text-white rounded-md focus:outline-none hover:scale-105">View</button> </td>
                 </tr>
                 </a>
                 <% }); %>
@@ -127,6 +127,7 @@
             <div class="mt-4 p-2">
                 <form id="form">
                     <div class="grid grid-cols-2 gap-2">
+                        <input type="hidden" name="student-id">
                         <div class="flex items-center p-2">
                             <span
                                 class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-lg text-white">AuthID
@@ -187,7 +188,7 @@
         if(mentorErr === "success"){
             const select_mentor = $('select[name=select-mentor]');
             mentorsData.mentors.forEach(mentor => {
-                const optionHTML = $("<option></option>").val(mentor.authID).text(mentor.email).attr("name",mentor.email);
+                const optionHTML = $("<option></option>").val(mentor._id).text(mentor.email).attr("name",mentor.email);
                 select_mentor.append(optionHTML);
             });
         }
@@ -199,14 +200,15 @@
         page.addClass("opacity-30");
         const view = $('#student-view');
         $.getJSON(url, (data, res) => {
-            if (res === "success") {
+            if (data.res) {
                 $("#form")[0].reset();
                 $("input[name=auth]").val(data.data.authID);
                 $("input[name=email]").val(data.data.email);
                 $("input[name=plan]").val(data.data.subscribed_plan);
+                $("input[name=student-id]").val(data.data._id);
                 if (data.data.subscribed_plan != "free") {
                     
-                    $("input[name=current-mentor]").val(data.data?.current_mentor?.mentor_email);
+                    $("input[name=current-mentor]").val(data.data?.current_mentor?.mentor?.email);
                     $("#subscribed-users").removeClass("hidden");
                     $("input[name=subscription_id]").val(data.data?.subscription_id);
                 }
@@ -255,18 +257,12 @@
         }
     }
     function assignMentor(){
-        const student_authID = $("input[name=auth]").val();
-        const mentor_authID = $("select[name=select-mentor]").find(":selected").val();
-        const mentor_email = $("select[name=select-mentor]").find(":selected").text();
-        const student_email = $("input[name=email]").val();
-        const student_plan = $("input[name=plan]").val();
+        const student_id = $("input[name=student-id]").val();
+        const mentor_id = $("select[name=select-mentor]").find(":selected").val();
         const loader = $("#loader");
         const postBody = {
-            student_authID : student_authID,
-            mentor_authID:mentor_authID,
-            mentor_email:mentor_email,
-            student_email:student_email,
-            student_plan:student_plan
+            student_id : student_id,
+            mentor_id:mentor_id,
         };
         if(loader.hasClass("hidden"))
             loader.removeClass("hidden");
