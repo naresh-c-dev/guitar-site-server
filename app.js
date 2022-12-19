@@ -120,11 +120,16 @@ const messageSchema = new mongoose.Schema({
         sender: Boolean,
         text: String,
         flag: Boolean,
-        time: {
+        created_at: {
             type : Date,
             default : Date.now
         }
-    }]
+    }],
+    created_at : {
+        type : Date,
+        default : Date.now
+    }
+
 });
 const Messenger = new mongoose.model('Messenger', messageSchema);
 
@@ -294,11 +299,20 @@ const mentorSchema = new mongoose.Schema({
        student : {
         type:mongoose.SchemaTypes.ObjectId,
         ref : 'User_Student',
-        unique : true
        },
         created_at: {
             type: Date,
             default: Date.now
+        }
+    }],
+    groups : [{
+        student : {
+            type : mongoose.SchemaTypes.ObjectId,
+            ref : 'Group'
+        },
+        created_at : {
+            type : Date,
+            default : Date.now
         }
     }],
     assigned_courses: [{
@@ -392,7 +406,7 @@ const groupSchema = new mongoose.Schema({
         }
     }],
 });
-const Group = new mongoose.model('group', groupSchema);
+const Group = new mongoose.model('Group', groupSchema);
 
 const allUsersSchema = new mongoose.Schema({
     authID: {
@@ -469,7 +483,47 @@ app.get('/api/message/student/:studentID/mentor/:mentorID', requiresAuth(), (req
         _student_id: req.params.studentID,
         _mentor_id: req.params.mentorID
     }, (err, data) => {
-        res.json({chats:err});
+        if(!err){
+            if(data ===null){
+                const newMessage = new Messenger({
+                    _student_id : req.params.studentID,
+                    _mentor_id : req.params.mentorID,
+                    chats : []
+                });
+                newMessage.save((saveErr)=>{
+                    if(!saveErr)
+                        res.json({res:true,chats : []});
+                    else 
+                        res.json({res : false});
+                });
+            }else 
+                res.json({res:true,chats:data.chats});
+        }
+        else{
+            res.json({res : false});
+            console.error(err);
+        }
+    });
+});
+
+app.post('/api/message/student/:studentID/mentor/:mentorID', requiresAuth(), (req, res) => {
+    Messenger.updateOne({
+        _student_id: req.params.studentID,
+        _mentor_id: req.params.mentorID
+    }, {
+        $push: {
+            chats: {
+                text: req.body.message,
+                flag: req.body.flag,
+            }
+        }
+    }, (err) => {
+        if (err) {
+            res.sendStatus(404)
+        } else {
+            res.sendStatus(200);
+        }
+
     });
 });
 
@@ -477,7 +531,7 @@ app.get('/api/get/:role', requiresAuth(), (req, res) => {
     if (req.params.role === 'student') {
         User_Student.findOne({
             authID: req.oidc.user.sub
-        });
+        })
         .populate('enrolled_courses.course','_id course_title subscription_plan modules.title')
         .populate('current_mentor.mentor')
         .exec((err, data) => {
@@ -495,7 +549,10 @@ app.get('/api/get/:role', requiresAuth(), (req, res) => {
     } else if (req.params.role === 'mentor') {
         Mentor.findOne({
             authID: req.oidc.user.sub
-        },(err, data) => {
+        })
+        .populate('students.student')
+        .populate({path : 'groups.student',populate : {path :'group_members.member'}})
+        .exec((err, data) => {
             if (err) {
                 res.json({res:false})
                 console.log(err);
@@ -532,35 +589,14 @@ app.get('/api/get/:role', requiresAuth(), (req, res) => {
     }
 });
 
-app.post('/api/message/student/:studentID/mentor/:mentorID', requiresAuth(), (req, res) => {
-    Messenger.updateOne({
-        _student_id: req.params.studentID,
-        _mentor_id: req.params.mentorID
-    }, {
-        $push: {
-            chats: {
-                text: req.body.message,
-                flag: req.body.flag,
-                time: Date.now(),
-            }
-        }
-    }, (err) => {
-        if (err) {
-            res.sendStatus(404)
-        } else {
-            res.sendStatus(200);
-        }
 
-    });
-});
 
 app.post('/api/enrollcourse', requiresAuth(), (req, res) => {
     try {
         User_Student.findOne({authID : req.oidc.user.sub})
         .populate('group')
-        .select('_id subscribed_plan plan_status')
         .exec((uerr,user)=>{
-            if(!uerr && user!=null){
+            if(!uerr && user!=nsull){
                 Courses.findOne({ _id : req.body.course_id})
                .exec((cerr,course)=>{
                     if(!cerr && course !=null){
@@ -573,7 +609,7 @@ app.post('/api/enrollcourse', requiresAuth(), (req, res) => {
                                 else 
                                     return false;
                             } else if (user.group_status){
-                                if((((course.subscription_plan ==='pro') && (user.group.subscribed_plan ==='pro' || user.group.subscribed_plan ==='plus')) || (course.group.subscribed_plan === 'plus' && user.group.subscribed_plan ==='plus')) && user.group.plan_status)
+                                if((((course.subscription_plan ==='pro') && (user.group?.subscribed_plan ==='pro' || user.group.subscribed_plan ==='plus')) || (course.group.subscribed_plan === 'plus' && user.group.subscribed_plan ==='plus')) && user.group.plan_status)
                                     return true;
                                 else 
                                     return false;
@@ -699,7 +735,7 @@ app.get('/api/archives',requiresAuth(),(req,res)=>{
                                 res.json({res:true, access : true, archive_data : archiveData});
                             });
                         } else {
-                            Archive.find({response.query, status : })
+                            Archive.find(response.query)
                             .exec((archiveErr, archiveData)=>{
                                 if(!archiveErr){
                                     res.json({res:true, access : true, archive_data : archiveData});
@@ -821,6 +857,7 @@ app.get('/api/user/profile',requiresAuth(),(req,res)=>{
     if(req.query.role === 'student'){
         User_Student.findOne({authID : req.oidc.user.sub})
         .populate('current_mentor.mentor')
+        .populate('group')
         .exec((err,userData)=>{
             if(!err && userData !=null){
                 if (userData.subscribed_plan !='free'){
@@ -903,7 +940,7 @@ app.get('/api/log-out', (req, res) => {
 
 // Redirect to Profile
 app.get('/api/profile', requiresAuth(), (req, res) => {
-    if (req.query.role === "student" || req.query.role === "mentor" || req.query.role === "group") {
+    if (req.query?.role === "student" || req.query?.role === "mentor" || req.query?.role === "group") {
         User.findOne({
             authID: req.oidc.user.sub
         }, (err, data) => {
@@ -921,7 +958,7 @@ app.get('/api/profile', requiresAuth(), (req, res) => {
         });
 
     }
-    if (req.query.role === "mentor") {
+    if (req.query?.role === "mentor") {
         Mentor.findOne({
             authID: req.oidc.user.sub
         }, (err, data) => {
@@ -941,7 +978,7 @@ app.get('/api/profile', requiresAuth(), (req, res) => {
         });
         res.redirect(process.env.APP_URL + '/dashboard/mentor/profile');
 
-    } else if (req.query.role === "student") {
+    } else if (req.query?.role === "student") {
         User_Student.findOne({
             authID: req.oidc.user.sub
         }, (err, data) => {
@@ -982,7 +1019,7 @@ app.get('/api/profile', requiresAuth(), (req, res) => {
             res.redirect(process.env.APP_URL + '/dashboard/student/courses');
         });
 
-    } else if (req.query.role === "group") {
+    } else if (req.query?.role === "group") {
         Group.findOne({
             authID: req.oidc.user.sub
         }, (err, data) => {
@@ -1470,8 +1507,8 @@ app.post('/admin/assignMentor', (req, res) => {
         }, {
             $set: {
                 "current_mentor.mentor": req.body.mentor_id,
+                "mentor_status": true,
             },
-            "mentor_status": true,
             "$push": {
                 "mentor_history": {
                     mentor : req.body.mentor_id
@@ -1495,8 +1532,8 @@ app.post('/admin/assignMentor', (req, res) => {
                         }, (Meserr, MesData) => {
                             if (Meserr == null && MesData == null) {
                                 const newMessage = new Messenger({
-                                    _student_id: req.body.student_authID,
-                                    _mentor_id: req.body.mentor_authID
+                                    _student_id: req.body.student_id,
+                                    _mentor_id: req.body.mentor_id
                                 });
                                 newMessage.save((serr) => {
                                     if (!err) {
@@ -1831,8 +1868,8 @@ app.post('/admin/group/assign',(req,res)=>{
                 if(!err){
                     Mentor.updateOne({_id : req.body.mentor_id}, {
                         $push : {
-                            group_students : {
-                                group : req.body.group_id
+                            groups : {
+                                student : req.body.group_id
                             }
                         }
                     },(merr)=>{
@@ -1989,7 +2026,17 @@ app.post('/admin/group/user',(req,res)=>{
                 }
             },(err)=>{
                 if(!err){
-                    res.json({res:true})
+                    User_Student.updateOne({_id : req.body.user_id},{
+                        group_status : true,
+                        group : req.body.group_id
+                    },(userErr =>{
+                        if(!userErr) 
+                            res.json({res:true});
+                        else {
+                            res.json({res:false});
+                            console.error(userErr);
+                        }
+                    }));
                 } else {
                     res.json({res:false});
                     console.log(err);
