@@ -74,8 +74,10 @@ const config = {
     auth0Logout: true,
     baseURL: process.env.BASE_URL,
     clientID: process.env.CLIENT_ID,
-    cookie: {
-        domain: process.env.SERVER_DOMAIN
+    session :{
+        cookie: {
+            domain: process.env.SERVER_DOMAIN
+        }
     },
     issuerBaseURL: process.env.ISSUER_BASE_URL,
     secret: process.env.SECRET,
