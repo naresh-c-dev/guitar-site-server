@@ -83,7 +83,7 @@ const config = {
     secret: process.env.SECRET,
     routes: {
         login: false,
-        postLogoutRedirect: '/api/log-out'
+        postLogoutRedirect: '/api/logout'
     }
 
 };
