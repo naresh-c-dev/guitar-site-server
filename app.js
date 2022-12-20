@@ -724,7 +724,6 @@ app.get('/api/archives',requiresAuth(),(req,res)=>{
                         return {access : false};
                     }
                 }
-
                 validateReq().then((response)=>{
                     if(response.access){
                         if (req.query?.id != undefined){
@@ -947,119 +946,138 @@ app.get('/api/profile', requiresAuth(), (req, res) => {
             if (err || data) {
                 if(err)
                     console.error(err);
-
+                else 
+                res.redirect(process.env.APP_URL);    
             } else {
                 const newUser = new User({
                     authID: req.oidc.user.sub,
                     role: req.query.role
                 });
-                newUser.save();
-            }
-        });
-
-    }
-    if (req.query?.role === "mentor") {
-        Mentor.findOne({
-            authID: req.oidc.user.sub
-        }, (err, data) => {
-            if (err || data) {
-                if(err)
-                    console.error(err);
-            } else {
-                const newMentor = new Mentor({
-                    authID: req.oidc.user.sub,
-                    email: req.oidc.user.email,
-                    students: [],
-                    status: false,
-                    assigned_courses: []
-                });
-                newMentor.save();
-            }
-        });
-        res.redirect(process.env.APP_URL + '/dashboard/mentor/profile');
-
-    } else if (req.query?.role === "student") {
-        User_Student.findOne({
-            authID: req.oidc.user.sub
-        }, (err, data) => {
-            if (err) {
-                console.log(err);
-            } else if (data == null) {
-                razorInstance.customers.create({
-                    name: req.oidc.user.username,
-                    email: req.oidc.user.email,
-                    notes: {
-                        role: req.params.role,
-                        authID: req.oidc.user.sub
-                    }
-                }, (cusErr, newCustomer) => {
-                    if (!cusErr) {
-                        const newUser = new User_Student({
-                            authID: req.oidc.user.sub,
-                            email: req.oidc.user.email,
-                            username: req.oidc.user.username,
-                            subscribed_plan: "free",
-                            razorpay_customer_id: newCustomer.id,
-                            mentor_access: false,
-                            subscription_status: false,
-                            manual_add: false
-                        });
-                        newUser.save((serr) => {
-                            if (serr) {
-                                res.sendStatus(500);
-                                console.log(serr);
-
-                            }
-
-                        });
-                    }
-                });
-
-            }
-            res.redirect(process.env.APP_URL + '/dashboard/student/courses');
-        });
-
-    } else if (req.query?.role === "group") {
-        Group.findOne({
-            authID: req.oidc.user.sub
-        }, (err, data) => {
-            if (data == null && !err) {
-                razorInstance.customers.create({
-                    name: req.oidc.user.username,
-                    email: req.oidc.user.email,
-                    notes: {
-                        role: req.params.role,
-                        authID: req.oidc.user.sub
-                    }
-                }, (cusErr, newCustomer) => {
-                    if (!cusErr) {
-                        const newGroup = new Group({
-                            authID: req.oidc.user.sub,
-                            email: req.oidc.user.email,
-                            subscribed_plan: "free",
-                            maximum_size: 0,
-                            razorpay_customer_id: newCustomer.id
-                        });
-                        newGroup.save((serr) => {
-                            if (serr == null) {
-                                res.redirect(process.env.APP_URL + '/dashboard/group/profile');
-                            } else {
-                                res.send("Page Not Found!");
-                                console.log(serr);
-                            }
-                        });
+                newUser.save((saveErr=>{
+                    if(!saveErr){
+                        if (req.query?.role === "mentor") {
+                            Mentor.findOne({
+                                authID: req.oidc.user.sub
+                            }, (Merr, data) => {
+                                if (Merr || Mdata) {
+                                    if(Merr)
+                                        console.error(Merr);
+                                    else
+                                        res.redirect(process.env.APP_URL);
+                                } else {
+                                    const newMentor = new Mentor({
+                                        authID: req.oidc.user.sub,
+                                        email: req.oidc.user.email,
+                                        students: [],
+                                        status: false,
+                                        assigned_courses: []
+                                    });
+                                    newMentor.save(mentorSaveErr=>{
+                                        if(!mentorSaveErr){
+                                            res.redirect(process.env.APP_URL);
+                                        } else {
+                                            res.send('Error');
+                                        }
+                                    });
+                                }
+                            });
+                            
+                    
+                        } else if (req.query?.role === "student") {
+                            User_Student.findOne({
+                                authID: req.oidc.user.sub
+                            }, (Serr, Sdata) => {
+                                if (Serr) {
+                                    console.log(Serr);
+                                    res.send('Error');
+                                } else if (Sdata == null) {
+                                    razorInstance.customers.create({
+                                        name: req.oidc.user.username,
+                                        email: req.oidc.user.email,
+                                        notes: {
+                                            role: req.params.role,
+                                            authID: req.oidc.user.sub
+                                        }
+                                    }, (cusErr, newCustomer) => {
+                                        if (!cusErr) {
+                                            const newUser = new User_Student({
+                                                authID: req.oidc.user.sub,
+                                                email: req.oidc.user.email,
+                                                username: req.oidc.user.username,
+                                                subscribed_plan: "free",
+                                                razorpay_customer_id: newCustomer.id,
+                                                mentor_access: false,
+                                                subscription_status: false,
+                                                manual_add: false
+                                            });
+                                            newUser.save((serr) => {
+                                                if (serr) {
+                                                    res.send('Error');
+                                                    console.log(serr);
+                    
+                                                } else {
+                                                    res.redirect(process.env.APP_URL);
+                                                }
+                    
+                                            });
+                                        }
+                                    });
+                    
+                                } else {
+                                    res.redirect(process.env.APP_URL);
+                                }
+                                
+                            });
+                        } else if (req.query?.role === "group") {
+                            Group.findOne({
+                                authID: req.oidc.user.sub
+                            }, (Gerr, Gdata) => {
+                                if (Gdata == null && !Gerr) {
+                                    razorInstance.customers.create({
+                                        name: req.oidc.user.username,
+                                        email: req.oidc.user.email,
+                                        notes: {
+                                            role: req.params.role,
+                                            authID: req.oidc.user.sub
+                                        }
+                                    }, (cusErr, newCustomer) => {
+                                        if (!cusErr) {
+                                            const newGroup = new Group({
+                                                authID: req.oidc.user.sub,
+                                                email: req.oidc.user.email,
+                                                subscribed_plan: "free",
+                                                maximum_size: 0,
+                                                razorpay_customer_id: newCustomer.id
+                                            });
+                                            newGroup.save((serr) => {
+                                                if (serr == null) {
+                                                    res.redirect(process.env.APP_URL);
+                                                } else {
+                                                    res.send("Page Not Found!");
+                                                    console.log(serr);
+                                                }
+                                            });
+                                        } else {
+                                            res.send("Page Not Found!");
+                                            console.log(cusErr);
+                                        }
+                                    });
+                                } else if (err != null) {
+                                    res.send("Page Not Found!" + err?.description);
+                                    console.log(err);
+                                } else if (Gdata != null ) {
+                                    res.redirect(process.env.APP_URL );
+                                } 
+                            });
+                        }
                     } else {
-                        res.send("Page Not Found!");
-                        console.log(cusErr);
+                        res.send('Error');
+                        console.log(saveErr);
                     }
-                });
-            } else if (err != null) {
-                res.send("Page Not Found!" + err?.description);
-                console.log(err);
-            } else if (data != null ) {
-                res.redirect(process.env.APP_URL + '/dashboard/group/profile');
-            } 
+                }));
+            }
         });
+
     } else {
         res.send('Invalid URL');
     }
@@ -1149,7 +1167,7 @@ app.post('/payment-success', requiresAuth(), (req, res) => {
                 }
             }, (err) => {
                 if (!err) {
-                    res.redirect(process.env.APP_URL + '/dashboard/student/profile');
+                    res.redirect(process.env.APP_URL);
                 } else {
                     res.send('Something Went Wrong! Try again later')
                     console.log(err);
@@ -1169,7 +1187,7 @@ app.post('/payment-success', requiresAuth(), (req, res) => {
                 }
             },(err)=>{
                 if(!err)
-                    res.redirect(process.env.APP_URL + '/dashboard/student/profile');
+                    res.redirect(process.env.APP_URL);
                 else {
                     res.send('Something Went Wrong! Try again Later');
                     console.error(err);
@@ -1189,7 +1207,7 @@ app.post('/payment-success', requiresAuth(), (req, res) => {
                 }
             },(err)=>{
                 if(!err){
-                    res.redirect(process.env.APP_URL +'/dashboard/group/profile')
+                    res.redirect(process.env.APP_URL)
                 }
             })
         } else {
