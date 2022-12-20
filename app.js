@@ -939,7 +939,6 @@ app.get('/api/logout', (req, res) => {
     });
 });
 
-app.all('/callback');
 
 app.get('/api/log-out', (req, res) => {
     res.redirect(process.env.APP_URL);
