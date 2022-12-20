@@ -47,6 +47,7 @@ const {
 } = new mux(process.env.MUX_ID, process.env.MUX_SECRET);
 
 app.use(cors(corsOptions));
+app.set("trust proxy", true);
 app.use(express.static('src'));
 app.use('/api/payment', express.static('public'));
 app.use('/', express.static('public'));
@@ -95,6 +96,7 @@ app.use(function (req, res, next) {
     res.locals.user = req.oidc.user;
     next();
 });
+
 
 const client = mongoose.connect(process.env.MONGODB_URL, {
     useNewUrlParser: true,
