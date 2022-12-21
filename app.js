@@ -78,7 +78,7 @@ const config = {
         cookie: {
             domain: process.env.SERVER_DOMAIN,
             path : '/callback',
-            sameSite : 'None',
+            sameSite : 'Lax',
             secure : true,
             httpOnly : false,
             transient : true,
