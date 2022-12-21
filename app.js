@@ -77,7 +77,7 @@ const config = {
     session :{
         cookie: {
             domain: process.env.SERVER_DOMAIN,
-            path : '/callback',
+            path : '/',
             sameSite : 'Lax',
             httpOnly : true,
             transient : true,
@@ -87,7 +87,6 @@ const config = {
     issuerBaseURL: process.env.ISSUER_BASE_URL,
     secret: process.env.SECRET,
     routes: {
-        callback:'/callback',
         login: false,
         postLogoutRedirect: '/api/logout'
     }
