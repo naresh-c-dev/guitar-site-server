@@ -82,7 +82,9 @@ const config = {
             httpOnly : true,
             transient : true,
 
-        }
+        },
+        rolling: false,
+        absoluteDuration: 60 * 60
     },
     issuerBaseURL: process.env.ISSUER_BASE_URL,
     secret: process.env.SECRET,
