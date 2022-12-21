@@ -80,6 +80,8 @@ const config = {
             path : '/callback',
             sameSite : 'None',
             secure : true,
+            httpOnly : false,
+            transient : true,
 
         }
     },
