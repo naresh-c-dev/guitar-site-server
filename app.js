@@ -77,7 +77,6 @@ const config = {
     session :{
         cookie: {
             domain: process.env.SERVER_DOMAIN,
-            httpOnly : true,
             path : '/',
             sameSite : 'None',
             secure : true,
