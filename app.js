@@ -79,8 +79,7 @@ const config = {
             domain: process.env.SERVER_DOMAIN,
             path : '/callback',
             sameSite : 'Lax',
-            secure : true,
-            httpOnly : false,
+            httpOnly : true,
             transient : true,
 
         }
