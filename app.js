@@ -2243,7 +2243,7 @@ router.post('/mux/webhook', (req, res) => {
     }
 });
 
-app.use('/app',router);
+app.use('/',router);
 
 app.listen(process.env.PORT || 3001, (err) => {
     if (!err) {
