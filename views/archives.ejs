@@ -111,7 +111,7 @@
         $('#loader').removeClass('hidden');
         const status = event.id==='true'? true : false;
         const id = event.parentNode.getAttribute("id");
-        $.post('/admin/archives/access',{archive_id : id,archive_status: status},(res,err)=>{
+        $.post('/app/admin/archives/access',{archive_id : id,archive_status: status},(res,err)=>{
             if(res.res){
                 window.location.reload();
             } else {
@@ -132,7 +132,7 @@
         const title = $("input[name=title]").val();
         const short_des = $("input[name=short-des]").val();
         $('#loader').removeClass('hidden');
-        $.post('/admin/archives/category',{archive_name : title, archive_description : short_des},(res,err)=>{
+        $.post('/app/admin/archives/category',{archive_name : title, archive_description : short_des},(res,err)=>{
             $('#add-archive').addClass('hidden');
             $('#response').removeClass('hidden');
             if(res.res){

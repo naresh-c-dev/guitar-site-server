@@ -184,7 +184,7 @@
 <script>
     const homeNav = $("#students");
     homeNav.addClass("bg-emerald-400");
-    $.getJSON('/admin/get/mentor',(mentorsData,mentorErr)=>{
+    $.getJSON('app/admin/get/mentor',(mentorsData,mentorErr)=>{
         if(mentorErr === "success"){
             const select_mentor = $('select[name=select-mentor]');
             mentorsData.mentors.forEach(mentor => {
@@ -195,7 +195,7 @@
     });
     function handleViewClick(event) {
         const id = event.getAttribute('id');
-        const url = "/admin/student/" + id;
+        const url = "app/admin/student/" + id;
         const page = $("#page");
         page.addClass("opacity-30");
         const view = $('#student-view');

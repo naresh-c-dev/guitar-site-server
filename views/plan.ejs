@@ -181,7 +181,7 @@
             period : $('select[name=period]').val(),
             plan_type : $('select[name=plan-type]').val()
         };
-        $.post('/admin/plan',body_data,(res)=>{
+        $.post('app/admin/plan',body_data,(res)=>{
             $('#loader').addClass('hidden');
             $('#add-plan').addClass('hidden');
             $("#response").removeClass("hidden");

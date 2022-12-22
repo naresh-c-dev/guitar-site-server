@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const router = require('express').Router();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -492,7 +493,7 @@ passport.deserializeUser((username, done) => {
 
 // ############################### API CALLS  ##############
 
-app.get('/api/message/student/:studentID/mentor/:mentorID', requiresAuth(), (req, res) => {
+router.get('/api/message/student/:studentID/mentor/:mentorID', requiresAuth(), (req, res) => {
     Messenger.findOne({
         _student_id: req.params.studentID,
         _mentor_id: req.params.mentorID
@@ -520,7 +521,7 @@ app.get('/api/message/student/:studentID/mentor/:mentorID', requiresAuth(), (req
     });
 });
 
-app.post('/api/message/student/:studentID/mentor/:mentorID', requiresAuth(), (req, res) => {
+router.post('/api/message/student/:studentID/mentor/:mentorID', requiresAuth(), (req, res) => {
     Messenger.updateOne({
         _student_id: req.params.studentID,
         _mentor_id: req.params.mentorID
@@ -541,7 +542,7 @@ app.post('/api/message/student/:studentID/mentor/:mentorID', requiresAuth(), (re
     });
 });
 
-app.get('/api/get/:role', requiresAuth(), (req, res) => {
+router.get('/api/get/:role', requiresAuth(), (req, res) => {
     if (req.params.role === 'student') {
         User_Student.findOne({
             authID: req.oidc.user.sub
@@ -605,7 +606,7 @@ app.get('/api/get/:role', requiresAuth(), (req, res) => {
 
 
 
-app.post('/api/enrollcourse', requiresAuth(), (req, res) => {
+router.post('/api/enrollcourse', requiresAuth(), (req, res) => {
     try {
         User_Student.findOne({authID : req.oidc.user.sub})
         .populate('group')
@@ -672,7 +673,7 @@ app.post('/api/enrollcourse', requiresAuth(), (req, res) => {
     }
 });
 
-app.get('/api/explore', (req, res) => {
+router.get('/api/explore', (req, res) => {
     Courses.find({
         status: true
     }, '_id course_title course_features subscription_plan short_description course_img ', (err, data) => {
@@ -689,7 +690,7 @@ app.get('/api/explore', (req, res) => {
     });
 });
 
-app.get('/api/explore/:courseID', (req, res) => {
+router.get('/api/explore/:courseID', (req, res) => {
     Courses.findOne({
         _id: req.params.courseID,
         status: true
@@ -708,7 +709,7 @@ app.get('/api/explore/:courseID', (req, res) => {
     });
 });
 
-app.get('/api/archives',requiresAuth(),(req,res)=>{
+router.get('/api/archives',requiresAuth(),(req,res)=>{
     try{
         User_Student.findOne({authID : req.oidc.user.sub})
         .populate('group')
@@ -776,7 +777,7 @@ app.get('/api/archives',requiresAuth(),(req,res)=>{
     }
 });
 
-app.get('/api/mylearning/:courseID', requiresAuth(), (req, res) => {
+router.get('/api/mylearning/:courseID', requiresAuth(), (req, res) => {
     User_Student.findOne({
         authID: req.oidc.user.sub
     })
@@ -826,7 +827,7 @@ app.get('/api/mylearning/:courseID', requiresAuth(), (req, res) => {
     });
 });
 
-app.post('/api/mylearning/:courseID/:moduleNum', requiresAuth(), (req, res) => {
+router.post('/api/mylearning/:courseID/:moduleNum', requiresAuth(), (req, res) => {
     User_Student.updateOne({
         authID: req.oidc.user.sub,
         "enrolled_courses.course": req.params.courseID
@@ -841,7 +842,7 @@ app.post('/api/mylearning/:courseID/:moduleNum', requiresAuth(), (req, res) => {
     });
 });
 
-app.get('/api/verify', (req, res) => {
+router.get('/api/verify', (req, res) => {
     if (req.oidc.isAuthenticated()) {
         User.findOne({
             authID: req.oidc.user.sub
@@ -866,7 +867,7 @@ app.get('/api/verify', (req, res) => {
     }
 });
 
-app.get('/api/user/profile',requiresAuth(),(req,res)=>{
+router.get('/api/user/profile',requiresAuth(),(req,res)=>{
     if(req.query.role === 'student'){
         User_Student.findOne({authID : req.oidc.user.sub})
         .populate('current_mentor.mentor')
@@ -929,7 +930,7 @@ app.get('/api/user/profile',requiresAuth(),(req,res)=>{
 
 
 // ######## LOGIN/SIGN UP METHODS
-app.get('/api/login', (req, res) => {
+router.get('/api/login', (req, res) => {
     if (req.query.role === "student" || req.query.role === "mentor" || req.query.role === "group") {
         res.oidc.login({
             returnTo: '/api/profile?role=' + req.query.role
@@ -940,20 +941,20 @@ app.get('/api/login', (req, res) => {
 
 });
 
-app.get('/api/logout', (req, res) => {
+router.get('/api/logout', (req, res) => {
     res.oidc.logout({
         returnTo: '/api/log-out'
     });
 });
 
 
-app.get('/api/log-out', (req, res) => {
+router.get('/api/log-out', (req, res) => {
     res.redirect(process.env.APP_URL);
 });
 
 
 // Redirect to Profile
-app.get('/api/profile', requiresAuth(), (req, res) => {
+router.get('/api/profile', requiresAuth(), (req, res) => {
     if (req.query?.role === "student" || req.query?.role === "mentor" || req.query?.role === "group") {
         User.findOne({
             authID: req.oidc.user.sub
@@ -1101,7 +1102,7 @@ app.get('/api/profile', requiresAuth(), (req, res) => {
 
 // ########## PAYMENT METHODS
 
-app.get('/api/payment/', requiresAuth(), (req, res) => {
+router.get('/api/payment/', requiresAuth(), (req, res) => {
     if (req.query.role === "student" && req.query.status ==="create" && (req.query.type==='pro' || req.query.type==='plus' )) {
         User_Student.findOne({
             authID: req.oidc.user.sub
@@ -1162,7 +1163,7 @@ app.get('/api/payment/', requiresAuth(), (req, res) => {
     }
 });
 
-app.post('/payment-success', requiresAuth(), (req, res) => {
+router.post('/payment-success', requiresAuth(), (req, res) => {
     const body = req.body.razorpay_payment_id + '|' + req.query.subscriptionid;
     const expectedSignature = crypto.createHmac('sha256', process.env.RAZOR_KEY_SECRET).update(body.toString()).digest('hex');
     if (expectedSignature === req.body.razorpay_signature) {
@@ -1236,14 +1237,14 @@ app.post('/payment-success', requiresAuth(), (req, res) => {
 
 
 // ###### ADMIN CALLS
-app.get('/', (req, res) => {
+router.get('/', (req, res) => {
     if (!req.isAuthenticated())
         res.render('admin_login');
     else
         res.redirect('/admin');
 });
 
-app.post('/', passport.authenticate('local', {
+router.post('/', passport.authenticate('local', {
     failureRedirect: '/',
 }), (req, res) => {
     res.redirect('/admin');
@@ -1284,7 +1285,7 @@ async function loadResponse() {
         total_plans: arr[6]
     })
 }
-app.get('/admin', (req, res) => {
+router.get('/admin', (req, res) => {
     if (!req.isAuthenticated()) {
         res.redirect('/');
     } else {
@@ -1302,7 +1303,7 @@ app.get('/admin', (req, res) => {
     }
 });
 
-app.get('/admin/students', (req, res) => {
+router.get('/admin/students', (req, res) => {
     if (!req.isAuthenticated()) {
         res.redirect('/');
     } else {
@@ -1316,7 +1317,7 @@ app.get('/admin/students', (req, res) => {
     }
 });
 
-app.get('/admin/mentors', (req, res) => {
+router.get('/admin/mentors', (req, res) => {
     if (!req.isAuthenticated()) {
         res.redirect('/');
     } else {
@@ -1328,7 +1329,7 @@ app.get('/admin/mentors', (req, res) => {
     }
 });
 
-app.get('/admin/student/:id', (req, res) => {
+router.get('/admin/student/:id', (req, res) => {
     if (!req.isAuthenticated()) {
         res.redirect('/');
     } else {
@@ -1347,7 +1348,7 @@ app.get('/admin/student/:id', (req, res) => {
     }
 });
 
-app.get('/admin/mentor/:id', (req, res) => {
+router.get('/admin/mentor/:id', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -1366,7 +1367,7 @@ app.get('/admin/mentor/:id', (req, res) => {
     }
 });
 
-app.get('/admin/groups', (req, res) => {
+router.get('/admin/groups', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -1384,7 +1385,7 @@ app.get('/admin/groups', (req, res) => {
     }
 });
 
-app.get('/admin/groups/get/:id',(req,res)=>{
+router.get('/admin/groups/get/:id',(req,res)=>{
     if(!req.isAuthenticated()){
         res.redirect('/');
     } else {
@@ -1408,7 +1409,7 @@ app.get('/admin/groups/get/:id',(req,res)=>{
     }
 });
 
-app.get('/admin/plans', (req, res) => {
+router.get('/admin/plans', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -1423,7 +1424,7 @@ app.get('/admin/plans', (req, res) => {
     }
 });
 
-app.post('/admin/plan', (req, res) => {
+router.post('/admin/plan', (req, res) => {
     if (!req.isAuthenticated()) {
         res.redirect('/');
     } else {
@@ -1461,7 +1462,7 @@ app.post('/admin/plan', (req, res) => {
     }
 });
 
-app.post('/admin/access/:id', (req, res) => {
+router.post('/admin/access/:id', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -1480,7 +1481,7 @@ app.post('/admin/access/:id', (req, res) => {
     }
 })
 
-app.get('/admin/get/mentor', (req, res) => {
+router.get('/admin/get/mentor', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -1501,7 +1502,7 @@ app.get('/admin/get/mentor', (req, res) => {
     }
 });
 
-app.get('/admin/get/plans',(req,res)=>{
+router.get('/admin/get/plans',(req,res)=>{
     if(!req.isAuthenticated()){
         res.redirect('/');
     } else {
@@ -1515,7 +1516,7 @@ app.get('/admin/get/plans',(req,res)=>{
     }
 });
 
-app.get('/admin/get/users',(req,res)=>{
+router.get('/admin/get/users',(req,res)=>{
     if(!req.isAuthenticated()){
         res.redirect('/');
     } else {
@@ -1530,7 +1531,7 @@ app.get('/admin/get/users',(req,res)=>{
     }
 });
 
-app.post('/admin/assignMentor', (req, res) => {
+router.post('/admin/assignMentor', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -1598,7 +1599,7 @@ app.post('/admin/assignMentor', (req, res) => {
     }
 });
 
-app.post('/admin/assigncourse', (req, res) => {
+router.post('/admin/assigncourse', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -1622,7 +1623,7 @@ app.post('/admin/assigncourse', (req, res) => {
     }
 });
 
-app.get('/admin/courses', (req, res) => {
+router.get('/admin/courses', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -1643,7 +1644,7 @@ app.get('/admin/courses', (req, res) => {
     }
 });
 
-app.post('/admin/post/course', (req, res) => {
+router.post('/admin/post/course', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -1687,7 +1688,7 @@ app.post('/admin/post/course', (req, res) => {
     }
 });
 
-app.post('/admin/post/module', async (req, res) => {
+router.post('/admin/post/module', async (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -1742,7 +1743,7 @@ app.post('/admin/post/module', async (req, res) => {
     }
 });
 
-app.post('/admin/post/access/:query', (req, res) => {
+router.post('/admin/post/access/:query', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -1809,7 +1810,7 @@ app.post('/admin/post/access/:query', (req, res) => {
     }
 });
 
-app.get('/admin/courses/:courseID', (req, res) => {
+router.get('/admin/courses/:courseID', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -1831,7 +1832,7 @@ app.get('/admin/courses/:courseID', (req, res) => {
     }
 });
 
-app.post('/admin/post/user', (req, res) => {
+router.post('/admin/post/user', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -1882,7 +1883,7 @@ app.post('/admin/post/user', (req, res) => {
     }
 });
 
-app.post('/admin/group/assign',(req,res)=>{
+router.post('/admin/group/assign',(req,res)=>{
     if(!req.isAuthenticated()){
         res.redirect('/');
     } else {
@@ -1924,7 +1925,7 @@ app.post('/admin/group/assign',(req,res)=>{
     }
 });
 
-app.post('/admin/group/update',(req,res)=>{
+router.post('/admin/group/update',(req,res)=>{
     if (!req.isAuthenticated()){
         res.redirect('/');
     } else {
@@ -1963,7 +1964,7 @@ app.post('/admin/group/update',(req,res)=>{
     }
 });
 
-app.post('/admin/group/user',(req,res)=>{
+router.post('/admin/group/user',(req,res)=>{
     if(!req.isAuthenticated()){
         res.redirect('/');
     } else {
@@ -2082,7 +2083,7 @@ app.post('/admin/group/user',(req,res)=>{
     } 
 });
 
-app.get('/admin/archives', (req, res) => {
+router.get('/admin/archives', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -2104,7 +2105,7 @@ app.get('/admin/archives', (req, res) => {
     }
 });
 
-app.post('/admin/archives/category', (req, res) => {
+router.post('/admin/archives/category', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -2130,7 +2131,7 @@ app.post('/admin/archives/category', (req, res) => {
     }
 });
 
-app.post('/admin/archives/access', (req, res) => {
+router.post('/admin/archives/access', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -2159,7 +2160,7 @@ app.post('/admin/archives/access', (req, res) => {
     }
 });
 
-app.get('/admin/archives/get/:id', (req, res) => {
+router.get('/admin/archives/get/:id', (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -2183,7 +2184,7 @@ app.get('/admin/archives/get/:id', (req, res) => {
     }
 });
 
-app.post('/admin/archives/module', async (req, res) => {
+router.post('/admin/archives/module', async (req, res) => {
 
     if (!req.isAuthenticated()) {
         res.redirect('/');
@@ -2223,7 +2224,7 @@ app.post('/admin/archives/module', async (req, res) => {
     }
 });
 // ######## Webhhook
-app.post('/mux/webhook', (req, res) => {
+router.post('/mux/webhook', (req, res) => {
     if (req.body.data.status === "ready" && req.body.type === "video.asset.ready") {
         try {
             Upload.updateOne({
@@ -2241,6 +2242,8 @@ app.post('/mux/webhook', (req, res) => {
        
     }
 });
+
+app.use('/app',router);
 
 app.listen(process.env.PORT || 3001, (err) => {
     if (!err) {
