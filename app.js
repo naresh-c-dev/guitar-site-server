@@ -90,7 +90,7 @@ const config = {
     issuerBaseURL: process.env.ISSUER_BASE_URL,
     secret: process.env.SECRET,
     routes: {
-        callback : '/callback',
+        callback : 'app/callback',
         login: false,
         postLogoutRedirect: '/api/logout'
     }
@@ -490,6 +490,12 @@ passport.deserializeUser((username, done) => {
     done(null, {
         username: process.env.ADMIN_USERNAME
     });
+});
+
+
+router.post('/callback',(req,res,next)=>{
+    console.log(req.header);
+    next();
 });
 
 // ############################### API CALLS  ##############
@@ -934,7 +940,7 @@ router.get('/api/user/profile',requiresAuth(),(req,res)=>{
 router.get('/api/login', (req, res) => {
     if (req.query.role === "student" || req.query.role === "mentor" || req.query.role === "group") {
         res.oidc.login({
-            returnTo: '/api/profile?role=' + req.query.role
+            returnTo: 'api/profile?role=' + req.query.role
         });
     } else {
         res.send("Invalid URL");
@@ -2244,7 +2250,7 @@ router.post('/mux/webhook', (req, res) => {
     }
 });
 
-app.use('/',router);
+app.use('/app',router);
 
 app.listen(process.env.PORT || 3001, (err) => {
     if (!err) {
