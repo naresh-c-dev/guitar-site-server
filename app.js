@@ -94,7 +94,7 @@ const AuthManager = new ManagementClient({
 
 app.use(auth(config));
 
-app.use(function (req, res, next) {
+app.use('/app/callback',function (req, res, next) {
     res.locals.user = req.oidc.user;
     next();
 });
