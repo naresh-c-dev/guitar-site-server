@@ -481,10 +481,7 @@ passport.deserializeUser((username, done) => {
 });
 
 
-router.post('/callback',(req,res,next)=>{
-    console.log(req.header);
-    next();
-});
+
 
 // ############################### API CALLS  ##############
 
