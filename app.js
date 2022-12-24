@@ -501,15 +501,12 @@ router.post('/callback',(req,res)=>{
           console.log(error);
         } else {
           // Send the response from the new route back to the client
-          res.send('Successfully loged in!');
+          res.json({res : response, body : body});
         }
       });
 });
 
-router.post('/app',(req,res)=>{
-    console.log(req.body);
-    res.send(req.body);
-});
+
 
 
 // ############################### API CALLS  ##############
