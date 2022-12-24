@@ -78,7 +78,7 @@ const config = {
     issuerBaseURL: process.env.ISSUER_BASE_URL,
     secret: process.env.SECRET,
     routes: {
-        callback : '/app/callback',
+        callback : process.env.BASE_URL + '/app/callback',
         login: false,
         postLogoutRedirect: '/api/logout'
     }
@@ -480,10 +480,6 @@ passport.deserializeUser((username, done) => {
     });
 });
 
-router.all('/callback',(req,res,next)=>{
-    res.send('Redirecting');
-    next();
-});
 
 
 // ############################### API CALLS  ##############
