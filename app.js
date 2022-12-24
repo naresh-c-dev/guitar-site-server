@@ -481,7 +481,6 @@ passport.deserializeUser((username, done) => {
 });
 
 router.all('/callback',(req,res,next)=>{
-    console.log(req.header());
     res.send('Redirecting');
     next();
 });
