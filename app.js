@@ -75,22 +75,9 @@ const config = {
     auth0Logout: true,
     baseURL: process.env.BASE_URL,
     clientID: process.env.CLIENT_ID,
-    session :{
-        cookie: {
-            domain: process.env.SERVER_DOMAIN,
-            path : '/',
-            sameSite : 'Lax',
-            httpOnly : true,
-            transient : true,
-
-        },
-        rolling: false,
-        absoluteDuration: 60 * 60
-    },
     issuerBaseURL: process.env.ISSUER_BASE_URL,
     secret: process.env.SECRET,
     routes: {
-        callback : 'app/callback',
         login: false,
         postLogoutRedirect: '/api/logout'
     }
@@ -2250,7 +2237,7 @@ router.post('/mux/webhook', (req, res) => {
     }
 });
 
-app.use('/app',router);
+app.use('/',router);
 
 app.listen(process.env.PORT || 3001, (err) => {
     if (!err) {
