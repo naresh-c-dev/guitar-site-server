@@ -78,6 +78,7 @@ const config = {
     issuerBaseURL: process.env.ISSUER_BASE_URL,
     secret: process.env.SECRET,
     routes: {
+        callback : '/app/callback',
         login: false,
         postLogoutRedirect: '/api/logout'
     }
