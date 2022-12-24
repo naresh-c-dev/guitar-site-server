@@ -78,7 +78,7 @@ const config = {
     issuerBaseURL: process.env.ISSUER_BASE_URL,
     secret: process.env.SECRET,
     routes: {
-        callback : 'https://guitar-site-87h3i.ondigitalocean.app/app/callback',
+        callback : '/app/callback',
         login: false,
         postLogoutRedirect: '/api/logout'
     }
@@ -94,7 +94,7 @@ const AuthManager = new ManagementClient({
 
 app.use(auth(config));
 
-app.use('/callback',function (req, res, next) {
+app.use(function (req, res, next) {
     res.locals.user = req.oidc.user;
     next();
 });
@@ -480,6 +480,36 @@ passport.deserializeUser((username, done) => {
     });
 });
 
+router.post('/callback',(req,res)=>{
+    console.log(req.body);
+    const formDataString = querystring.stringify(req.body);
+    const options = {
+        method: 'POST',
+        url: process.env.BASE_URL+'/app/app/callback',
+        headers: {
+            ...req.headers,
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:formDataString
+      };
+    
+      // Send the new request
+      request(options, (error, response, body) => {
+        if (error) {
+          // Handle any errors that occurred
+          res.send('Something went wrong');
+          console.log(error);
+        } else {
+          // Send the response from the new route back to the client
+          res.send('Successfully loged in!');
+        }
+      });
+});
+
+router.post('/app',(req,res)=>{
+    console.log(req.body);
+    res.send(req.body);
+});
 
 
 // ############################### API CALLS  ##############
