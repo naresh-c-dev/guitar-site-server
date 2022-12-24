@@ -78,7 +78,7 @@ const config = {
     issuerBaseURL: process.env.ISSUER_BASE_URL,
     secret: process.env.SECRET,
     routes: {
-        callback : process.env.BASE_URL + '/app/callback',
+        callback : 'https://guitar-site-87h3i.ondigitalocean.app/app/callback',
         login: false,
         postLogoutRedirect: '/api/logout'
     }
