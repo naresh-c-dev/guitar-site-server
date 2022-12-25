@@ -57,7 +57,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
 }));
-app.use('/auth/callback',(req,res,next)=>{
+app.use('/auth/callback',(req,res)=>{
     if(!req.headersSent){
         req.on('end',()=>{
             console.log('End');
