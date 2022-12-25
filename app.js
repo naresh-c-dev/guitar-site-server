@@ -505,7 +505,6 @@ app.post('/auth/callback',(req,res)=>{
         });
         const options = {
             url : 'http://guitar-site-87h3i.ondigitalocean.app/app/app/auth/callback',
-            jar : true,
             method :'POST',
             headers : {
                 ...req.headers,
@@ -513,7 +512,6 @@ app.post('/auth/callback',(req,res)=>{
                 'Connection' : 'keep-alive',
                 'Cookie' : req.headers.cookie
             },
-            qs : req.query,
             body : queryData,
             followRedirect : true,
             followAllRedirects : true,
