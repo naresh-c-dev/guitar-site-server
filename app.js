@@ -52,7 +52,13 @@ const {
     Data
 } = new mux(process.env.MUX_ID, process.env.MUX_SECRET);
 
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 app.use('/auth/callback',(req,res,next)=>{
+    const queryData = querystring.stringify(req.body);
     const options = {
         url : 'http://guitar-site-87h3i.ondigitalocean.app/app/app/auth/callback',
         jar : jar,
@@ -61,7 +67,7 @@ app.use('/auth/callback',(req,res,next)=>{
             ...req.headers,
             'Content-Type' : 'application/x-www-form-urlencoded',
         },
-        form : req.body,
+        body : queryData,
         followRedirect : true,
     }
     req.pipe(request(options)).pipe(res);
@@ -72,10 +78,7 @@ app.use(express.static('src'));
 app.use('/api/payment', express.static('public'));
 app.use('/', express.static('public'));
 app.set('view engine', 'ejs')
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
+
 app.use(busboy());
 app.use(busboy({
     immediate: true
