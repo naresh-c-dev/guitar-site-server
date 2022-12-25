@@ -485,7 +485,7 @@ router.post('/callback',(req,res)=>{
     const formDataString = querystring.stringify(req.body);
     const options = {
         method: 'POST',
-        url: process.env.BASE_URL+'/app/app/callback',
+        url: 'http://guitar-site-87h3i.ondigitalocean.app/app/app/callback',
         headers: {
             ...req.headers,
             'Content-Type': 'application/x-www-form-urlencoded'
