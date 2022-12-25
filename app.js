@@ -490,7 +490,8 @@ router.post('/callback',(req,res)=>{
             ...req.headers,
             'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body:formDataString
+        body:formDataString,
+        followRedirect: true
       };
     
       // Send the new request
