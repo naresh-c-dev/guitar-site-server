@@ -49,9 +49,9 @@ const {
     Data
 } = new mux(process.env.MUX_ID, process.env.MUX_SECRET);
 
-app.use('/callback',(req,res,next)=>{
+app.use('/auth/callback',(req,res,next)=>{
     console.log(req);
-    req.url = '/app/auth/callback';
+    req.url = '/app/app/auth/callback';
     next();
 });
 app.use(cors(corsOptions));
