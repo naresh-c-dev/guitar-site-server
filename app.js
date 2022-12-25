@@ -10,7 +10,7 @@ const {
     requiresAuth
 } = require('express-openid-connect');
 const openIdConnect = require('express-openid-connect');
-const jar = request.jar();
+
 
 const {
     query
@@ -25,6 +25,7 @@ const {
 const mux = require('@mux/mux-node');
 const fs = require('fs');
 const request = require('request');
+const jar = request.jar();
 const {
     log,
     Console
