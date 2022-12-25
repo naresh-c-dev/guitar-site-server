@@ -69,7 +69,11 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
-
+app.use('/callback', (req, res, next) => {
+    req.url = '/app' + req.url;
+    next();
+  });
+  
 const config = {
     idpLogout: true,
     authRequired: false,
@@ -481,26 +485,7 @@ passport.deserializeUser((username, done) => {
     });
 });
 
-router.post('/callback',(req,res)=>{
-    const formDataString = querystring.stringify(req.body);
-    const cookies = req.headers['cookie'];
-    const options = {
-        method: 'POST',
-        url: 'http://guitar-site-87h3i.ondigitalocean.app/app/app/callback',
-        headers: {
-            ...req.headers,
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Cookie' : cookies
-        },
-        body:formDataString,
-        cookies: req.cookies,
-        followRedirect : true,
-        timeout: 5000,
-      };
-    
-      // Send the new request
-      proxy(req,res,options);
-});
+
 
 
 
