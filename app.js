@@ -69,9 +69,7 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
-app.use('/app/callback',(req, res, next) => {
-    console.log(req.url);
-    req.url = '/app' + req.url;
+app.use((req, res, next) => {
     console.log(req.url);
     next();
   });
