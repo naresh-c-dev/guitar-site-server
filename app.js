@@ -515,7 +515,7 @@ app.post('/auth/callback',(req,res)=>{
             body : queryData,
             // followRedirect : true,
             // followAllRedirects : true,
-            // cookies : req.cookies
+            cookies : req.cookies
         }
         request((options),(error,response,body)=>{
             res.json({error : error,res: response, body : req.body, data : queryData});
