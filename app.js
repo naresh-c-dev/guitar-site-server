@@ -482,7 +482,6 @@ passport.deserializeUser((username, done) => {
 });
 
 router.post('/callback',(req,res)=>{
-    console.log(req.body);
     const formDataString = querystring.stringify(req.body);
     const cookies = req.headers['cookie'];
     const options = {
@@ -495,11 +494,22 @@ router.post('/callback',(req,res)=>{
         },
         body:formDataString,
         cookies: req.cookies,
+        followRedirect : true,
         timeout: 5000,
       };
     
       // Send the new request
-      proxy(req,res,options);
+      request(options, (error, response, body) => {
+        if (error) {
+          console.error(error);
+          return res.sendStatus(500);
+        }
+    
+        // Set the response status code to 302 (Found)
+    
+        // Return the response to the client
+        return res.send(body);
+      });
 });
 
 
