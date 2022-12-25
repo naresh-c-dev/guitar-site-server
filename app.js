@@ -70,7 +70,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 app.use('/callback',(req, res, next) => {
-    req.url = '/app'+req.url;
+    req.url = '/app/callback';
     console.log(req.url);
     next();
   });
