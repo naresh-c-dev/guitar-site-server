@@ -51,7 +51,11 @@ const {
     Data
 } = new mux(process.env.MUX_ID, process.env.MUX_SECRET);
 
-
+app.use('/auth/callback',(req,res,next)=>{
+    console.log(req.url);
+    req.url = '/app/auth/callback';
+    next();
+});
 app.use(cors(corsOptions));
 app.set("trust proxy", true);
 app.use(express.static('src'));
@@ -104,11 +108,7 @@ const AuthManager = new ManagementClient({
 
 
 app.use(auth(config));
-app.use('/auth/callback',(req,res,next)=>{
-    console.log(req.url);
-    req.url = '/app/auth/callback';
-    next();
-});
+
 
 app.use(function (req, res, next) {
     res.locals.user = req.oidc.user;
