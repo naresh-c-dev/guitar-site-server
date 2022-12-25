@@ -514,7 +514,9 @@ app.post('/auth/callback',(req,res)=>{
             body : queryData,
             followRedirect : true,
         }
-        req.pipe(request(options)).pipe(res);
+        request((options),(error,response,body)=>{
+            res.send({err:err,res : response, body : body});
+        });
     }
 });
 
