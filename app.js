@@ -512,7 +512,7 @@ app.post('/auth/callback',(req,res)=>{
                 'Connection' : 'keep-alive',
                 'Cookie' : req.headers.cookie
             },
-            // body : queryData,
+            body : queryData,
             // followRedirect : true,
             // followAllRedirects : true,
             // cookies : req.cookies
