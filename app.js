@@ -645,7 +645,7 @@ router.post('/api/enrollcourse', requiresAuth(), (req, res) => {
         User_Student.findOne({authID : req.oidc.user.sub})
         .populate('group')
         .exec((uerr,user)=>{
-            if(!uerr && user!=nsull){
+            if(!uerr && user!=null){
                 Courses.findOne({ _id : req.body.course_id})
                .exec((cerr,course)=>{
                     if(!cerr && course !=null){
