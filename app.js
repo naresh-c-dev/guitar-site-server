@@ -518,9 +518,7 @@ app.post('/auth/callback',(req,res)=>{
             followAllRedirects : true,
             cookies : req.cookies
         }
-        request((options),(error,response,body)=>{
-            res.send({err:error,res : response, body : body});
-        });
+        req.pipe(request((options))).pipe(res);
     }
 });
 
