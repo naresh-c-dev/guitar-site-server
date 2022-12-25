@@ -499,17 +499,7 @@ router.post('/callback',(req,res)=>{
       };
     
       // Send the new request
-      request(options, (error, response, body) => {
-        if (error) {
-          console.error(error);
-          return res.sendStatus(500);
-        }
-    
-        // Set the response status code to 302 (Found)
-    
-        // Return the response to the client
-        return res.send(body);
-      });
+      proxy(req,res,options);
 });
 
 
