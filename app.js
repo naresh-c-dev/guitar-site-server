@@ -58,8 +58,12 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 app.use('/auth/callback',(req,res,next)=>{
-    if(!req.headersSent && !req.finished){
+    if(!req.headersSent){
+        req.on('end',()=>{
+            console.log('End');
+        });
         const queryData = querystring.stringify(req.body);
+
         const options = {
             url : 'http://guitar-site-87h3i.ondigitalocean.app/app/app/auth/callback',
             jar : jar,
