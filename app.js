@@ -4,6 +4,7 @@ const router = require('express').Router();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const proxy = require('express-request-proxy');
+const http = require('http');
 const cors = require('cors');
 const {
     auth,
@@ -505,7 +506,7 @@ app.post('/auth/callback',(req,res)=>{
         const options = {
             url : 'http://guitar-site-87h3i.ondigitalocean.app/app/app/auth/callback',
             jar : true,
-            method : req.method,
+            method :'POST',
             headers : {
                 ...req.headers,
                 'Content-Type' : 'application/x-www-form-urlencoded',
