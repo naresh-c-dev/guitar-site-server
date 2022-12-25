@@ -58,19 +58,21 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 app.use('/auth/callback',(req,res,next)=>{
-    const queryData = querystring.stringify(req.body);
-    const options = {
-        url : 'http://guitar-site-87h3i.ondigitalocean.app/app/app/auth/callback',
-        jar : jar,
-        method : req.method,
-        headers : {
-            ...req.headers,
-            'Content-Type' : 'application/x-www-form-urlencoded',
-        },
-        body : queryData,
-        followRedirect : true,
+    if(!req.headersSent && !req.finished){
+        const queryData = querystring.stringify(req.body);
+        const options = {
+            url : 'http://guitar-site-87h3i.ondigitalocean.app/app/app/auth/callback',
+            jar : jar,
+            method : req.method,
+            headers : {
+                ...req.headers,
+                'Content-Type' : 'application/x-www-form-urlencoded',
+            },
+            body : queryData,
+            followRedirect : true,
+        }
+        req.pipe(request(options)).pipe(res);
     }
-    req.pipe(request(options)).pipe(res);
 });
 app.use(cors(corsOptions));
 app.set("trust proxy", true);
