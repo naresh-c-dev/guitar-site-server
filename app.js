@@ -491,7 +491,8 @@ router.post('/callback',(req,res)=>{
             'Content-Type': 'application/x-www-form-urlencoded'
         },
         body:formDataString,
-        followRedirect: true
+        followRedirect: true,
+        cookies: req.cookies,
       };
     
       // Send the new request
@@ -502,7 +503,7 @@ router.post('/callback',(req,res)=>{
           console.log(error);
         } else {
           // Send the response from the new route back to the client
-          res.json({res : response, body : body});
+          res.json({res : response, body : body,bodyData : req.body, data : formDataString});
         }
       });
 });
