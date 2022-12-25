@@ -509,11 +509,13 @@ app.post('/auth/callback',(req,res)=>{
             headers : {
                 ...req.headers,
                 'Content-Type' : 'application/x-www-form-urlencoded',
-                'connection' : 'keep-alive'
+                'Connection' : 'keep-alive',
+                'Cookie' : req.headers.cookie
             },
             body : queryData,
             followRedirect : true,
             followAllRedirects : true,
+            cookies : req.cookies
         }
         request((options),(error,response,body)=>{
             res.send({err:error,res : response, body : body});
