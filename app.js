@@ -53,34 +53,7 @@ const {
 } = new mux(process.env.MUX_ID, process.env.MUX_SECRET);
 
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
-app.use('/auth/callback',(req,res)=>{
-    if(!req.headersSent){
-        req.on('end',()=>{
-            console.log('End');
-        });
-        const queryData = querystring.stringify(req.body);
-        req.on('error',(err)=>{
-            console.log('Error Occured',err)
-        });
-        const options = {
-            url : 'http://guitar-site-87h3i.ondigitalocean.app/app/app/auth/callback',
-            jar : jar,
-            method : req.method,
-            headers : {
-                ...req.headers,
-                'Content-Type' : 'application/x-www-form-urlencoded',
-                'Cookie' : req.headers.cookie,
-            },
-            body : queryData,
-            followRedirect : true,
-        }
-        req.pipe(request(options)).pipe(res);
-    }
-});
+
 app.use(cors(corsOptions));
 app.set("trust proxy", true);
 app.use(express.static('src'));
@@ -100,9 +73,6 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-
-
-
 const config = {
     idpLogout: true,
     authRequired: false,
@@ -118,6 +88,10 @@ const config = {
     }
 
 };
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 
 
 
@@ -519,7 +493,30 @@ passport.deserializeUser((username, done) => {
 });
 
 
-
+app.post('/auth/callback',(req,res)=>{
+    if(!req.headersSent){
+        req.on('end',()=>{
+            console.log('End');
+        });
+        const queryData = querystring.stringify(req.body);
+        req.on('error',(err)=>{
+            console.log('Error Occured',err)
+        });
+        const options = {
+            url : 'http://guitar-site-87h3i.ondigitalocean.app/app/app/auth/callback',
+            jar : jar,
+            method : req.method,
+            headers : {
+                ...req.headers,
+                'Content-Type' : 'application/x-www-form-urlencoded',
+                'Cookie' : req.headers.cookie,
+            },
+            body : queryData,
+            followRedirect : true,
+        }
+        req.pipe(request(options)).pipe(res);
+    }
+});
 
 
 
