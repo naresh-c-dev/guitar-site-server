@@ -105,8 +105,8 @@ const AuthManager = new ManagementClient({
 
 app.use(auth(config));
 app.use('/auth/callback',(req,res,next)=>{
-    console.log(req);
-    req.url = '/app/app/auth/callback';
+    console.log(req.url);
+    req.url = '/app/auth/callback';
     next();
 });
 
