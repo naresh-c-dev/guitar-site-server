@@ -484,15 +484,18 @@ passport.deserializeUser((username, done) => {
 router.post('/callback',(req,res)=>{
     console.log(req.body);
     const formDataString = querystring.stringify(req.body);
+    const cookies = req.headers['cookie'];
     const options = {
         method: 'POST',
         url: 'http://guitar-site-87h3i.ondigitalocean.app/app/app/callback',
         headers: {
             ...req.headers,
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Cookie' : cookies
         },
         body:formDataString,
         cookies: req.cookies,
+        timeout: 5000,
       };
     
       // Send the new request
