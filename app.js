@@ -512,10 +512,10 @@ app.post('/auth/callback',(req,res)=>{
                 'Connection' : 'keep-alive',
                 'Cookie' : req.headers.cookie
             },
-            body : queryData,
-            followRedirect : true,
-            followAllRedirects : true,
-            cookies : req.cookies
+            // body : queryData,
+            // followRedirect : true,
+            // followAllRedirects : true,
+            // cookies : req.cookies
         }
         request((options),(error,response,body)=>{
             res.json({error : error,res: response, body : req.body, data : queryData});
