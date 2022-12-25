@@ -513,8 +513,8 @@ app.post('/auth/callback',(req,res)=>{
                 'Cookie' : req.headers.cookie
             },
             body : queryData,
-            // followRedirect : true,
-            followAllRedirects : true,
+            followRedirect : true,
+            // followAllRedirects : true,
             cookies : req.cookies
         }
         request((options),(error,response,body)=>{
