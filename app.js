@@ -49,6 +49,11 @@ const {
     Data
 } = new mux(process.env.MUX_ID, process.env.MUX_SECRET);
 
+app.use('/callback',(req,res,next)=>{
+    console.log(req);
+    req.url = '/app/auth/callback';
+    next();
+});
 app.use(cors(corsOptions));
 app.set("trust proxy", true);
 app.use(express.static('src'));
@@ -70,10 +75,7 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
-app.use('/callback',(req,res,next)=>{
-    req.url='/app/app/callback';
-    next();
-});
+
   
 const config = {
     idpLogout: true,
@@ -84,14 +86,13 @@ const config = {
     issuerBaseURL: process.env.ISSUER_BASE_URL,
     secret: process.env.SECRET,
     routes: {
-        callback : '/app/callback',
+        callback : '/app/auth/callback',
         login: false,
         postLogoutRedirect: '/api/logout'
     }
 
 };
-// openIdConnect.configure(config);
-// app.use('/callback',auth.callback);
+
 
 const AuthManager = new ManagementClient({
     clientId: process.env.GLOBAL_AUTH_CLIENT_ID,
