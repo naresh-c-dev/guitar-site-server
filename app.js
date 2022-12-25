@@ -57,6 +57,10 @@ app.use('/auth/callback',(req,res,next)=>{
         url : 'http://guitar-site-87h3i.ondigitalocean.app/app/app/auth/callback',
         jar : jar,
         method : req.method,
+        headers : {
+            ...req.headers,
+            'Content-Type' : 'application/x-www-form-urlencoded',
+        },
         form : req.body,
         followRedirect : true,
     }
