@@ -64,7 +64,7 @@ app.use('/auth/callback',(req,res,next)=>{
         form : req.body,
         followRedirect : true,
     }
-    req.pipe(request()).pipe(res);
+    req.pipe(request(options)).pipe(res);
 });
 app.use(cors(corsOptions));
 app.set("trust proxy", true);
