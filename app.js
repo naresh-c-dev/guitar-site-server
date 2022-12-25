@@ -63,7 +63,9 @@ app.use('/auth/callback',(req,res,next)=>{
             console.log('End');
         });
         const queryData = querystring.stringify(req.body);
-
+        req.on('error',(err)=>{
+            console.log('Error Occured',err)
+        });
         const options = {
             url : 'http://guitar-site-87h3i.ondigitalocean.app/app/app/auth/callback',
             jar : jar,
@@ -71,6 +73,7 @@ app.use('/auth/callback',(req,res,next)=>{
             headers : {
                 ...req.headers,
                 'Content-Type' : 'application/x-www-form-urlencoded',
+                'Cookie' : req.headers.cookie,
             },
             body : queryData,
             followRedirect : true,
