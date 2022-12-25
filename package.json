@@ -23,6 +23,7 @@
     "express": "^4.18.1",
     "express-fileupload": "^1.4.0",
     "express-openid-connect": "^2.8.0",
+    "express-request-proxy": "^2.2.2",
     "express-session": "^1.17.3",
     "http-proxy-middleware": "^2.0.6",
     "jquery": "^3.6.1",

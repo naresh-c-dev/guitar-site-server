@@ -3,6 +3,7 @@ const express = require('express');
 const router = require('express').Router();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const proxy = require('express-request-proxy');
 const cors = require('cors');
 const {
     auth,
@@ -491,21 +492,11 @@ router.post('/callback',(req,res)=>{
             'Content-Type': 'application/x-www-form-urlencoded'
         },
         body:formDataString,
-        followRedirect: true,
         cookies: req.cookies,
       };
     
       // Send the new request
-      request(options, (error, response, body) => {
-        if (error) {
-          // Handle any errors that occurred
-          res.send('Something went wrong');
-          console.log(error);
-        } else {
-          // Send the response from the new route back to the client
-          res.json({res : response, body : body,bodyData : req.body, data : formDataString});
-        }
-      });
+      proxy(req,res,options);
 });
 
 
