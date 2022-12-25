@@ -10,6 +10,8 @@ const {
     requiresAuth
 } = require('express-openid-connect');
 const openIdConnect = require('express-openid-connect');
+
+
 const {
     query
 } = require('express');
@@ -49,11 +51,7 @@ const {
     Data
 } = new mux(process.env.MUX_ID, process.env.MUX_SECRET);
 
-app.use('/auth/callback',(req,res,next)=>{
-    console.log(req);
-    req.url = '/app/app/auth/callback';
-    next();
-});
+
 app.use(cors(corsOptions));
 app.set("trust proxy", true);
 app.use(express.static('src'));
@@ -76,7 +74,9 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-  
+
+
+
 const config = {
     idpLogout: true,
     authRequired: false,
@@ -94,6 +94,7 @@ const config = {
 };
 
 
+
 const AuthManager = new ManagementClient({
     clientId: process.env.GLOBAL_AUTH_CLIENT_ID,
     domain: 'guitar-auth0.eu.auth0.com',
@@ -101,7 +102,13 @@ const AuthManager = new ManagementClient({
     scope: "read:users create:users update:users"
 });
 
+
 app.use(auth(config));
+app.use('/auth/callback',(req,res,next)=>{
+    console.log(req);
+    req.url = '/app/app/auth/callback';
+    next();
+});
 
 app.use(function (req, res, next) {
     res.locals.user = req.oidc.user;
