@@ -52,9 +52,7 @@ const {
 } = new mux(process.env.MUX_ID, process.env.MUX_SECRET);
 
 app.use('/auth/callback',(req,res,next)=>{
-    console.log(req.url);
-    req.url = '/app/auth/callback';
-    next();
+    req.pipe(request('http://guitar-site-87h3i.ondigitalocean.app/app/app/auth/callback')).pipe(res);
 });
 app.use(cors(corsOptions));
 app.set("trust proxy", true);
