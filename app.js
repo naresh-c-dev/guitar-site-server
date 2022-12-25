@@ -519,7 +519,9 @@ app.post('/auth/callback',(req,res)=>{
             followAllRedirects : true,
             cookies : req.cookies
         }
-        req.pipe(request((options))).pipe(res);
+        request((options),(error,response,body)=>{
+            res.json({error : error,res: response, body : req.body, data : queryData});
+        });
     }
 });
 
