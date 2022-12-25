@@ -9,6 +9,7 @@ const {
     auth,
     requiresAuth
 } = require('express-openid-connect');
+const openIdConnect = require('express-openid-connect');
 const {
     query
 } = require('express');
@@ -69,11 +70,10 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
-app.use('/callback',(req, res, next) => {
-    req.url = '/app/callback';
-    console.log(req.url);
+app.use('/callback',(req,res,next)=>{
+    req.url='/app/app/callback';
     next();
-  });
+});
   
 const config = {
     idpLogout: true,
@@ -90,6 +90,8 @@ const config = {
     }
 
 };
+// openIdConnect.configure(config);
+// app.use('/callback',auth.callback);
 
 const AuthManager = new ManagementClient({
     clientId: process.env.GLOBAL_AUTH_CLIENT_ID,
