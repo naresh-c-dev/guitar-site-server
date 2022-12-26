@@ -184,7 +184,7 @@
 <script>
     const homeNav = $("#students");
     homeNav.addClass("bg-emerald-400");
-    $.getJSON('app/admin/get/mentor',(mentorsData,mentorErr)=>{
+    $.getJSON('/app/admin/get/mentor',(mentorsData,mentorErr)=>{
         if(mentorErr === "success"){
             const select_mentor = $('select[name=select-mentor]');
             mentorsData.mentors.forEach(mentor => {
