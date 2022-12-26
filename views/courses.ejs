@@ -126,11 +126,11 @@
     function viewCourse(event){
         
         console.log(event.getAttribute('id'));
-        window.location.href="app/admin/courses/"+event.getAttribute('id');
+        window.location.href="/app/admin/courses/"+event.getAttribute('id');
     }
     function handleCourseAccess(event) {
         const status = event.id == "true" ? true : false;
-        const url = 'app/admin/post/access/course';
+        const url = '/app/admin/post/access/course';
         console.log(event.parentNode.getAttribute('id'));
         const loader = $('#loader');
         if(loader.hasClass('hidden')){

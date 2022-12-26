@@ -100,7 +100,7 @@
             window.location.href = '/admin/mentor/' + id;
         }
         function access(event) {
-            const url = 'app/admin/access/'+ event.parentElement.id;
+            const url = '/app/admin/access/'+ event.parentElement.id;
             const status = event.id == "true" ? true : false;
             console.log(status);
             const loader = $('#loader');
@@ -134,7 +134,7 @@
         }
         function viewMentor(event){
             const id = event.getAttribute('id');
-            const url = "app/admin/mentor/" + id;
+            const url = "/app/admin/mentor/" + id;
             const page = $("#page");
             page.addClass("opacity-30");
             const view = $('#mentor-view');

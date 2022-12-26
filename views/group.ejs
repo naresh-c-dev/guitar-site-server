@@ -353,7 +353,7 @@
     </div>    
 <script>
    $("#groups").addClass("bg-emerald-400");
-   $.getJSON('app/admin/get/mentor',(mentorsData,mentorErr)=>{
+   $.getJSON('/app/admin/get/mentor',(mentorsData,mentorErr)=>{
         if(mentorErr === "success" && mentorsData.res){
             const select_mentor = $('select[name=select-mentor]');
             mentorsData.mentors.forEach(mentor => {
@@ -365,7 +365,7 @@
         }
         
     });
-    $.getJSON('app/admin/get/users',(data,err)=>{
+    $.getJSON('/app/admin/get/users',(data,err)=>{
         if (data.res && err==='success'){
             const select_users = $('select[name=select-add-new-group-user]');
             data.users.forEach(user=>{
@@ -376,7 +376,7 @@
             handleResponse(false,'Something Went Wrong, Try Again later');
         }
     });
-    $.getJSON('app/admin/get/plans',(data,err)=>{
+    $.getJSON('/app/admin/get/plans',(data,err)=>{
         if(data.res && err ==='success'){
             const select_razor_plan = $('select[name=select-razorpay-plan]');
             data.plans.forEach(plan=>{
@@ -403,7 +403,7 @@
         const email_regex = /^[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*$/;
         const password_regex =  /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
         if(email_regex.test(group_email) && password_regex.test(group_password)){
-            $.post('app/admin/group/user',{
+            $.post('/app/admin/group/user',{
                 email : group_email, 
                 password:group_password, 
                 user_type : 'new',
@@ -428,7 +428,7 @@
         $('#page').addClass('opacity-30');
     }   
     function viewGroup(event) {
-        const url = 'app/admin/groups/get/'+event.getAttribute('id');
+        const url = '/app/admin/groups/get/'+event.getAttribute('id');
         handleProfileNav(document.getElementById('group-profile-nav'));
         $('#group-view').removeClass('hidden');
         $('#page').addClass('opacity-30');
@@ -581,7 +581,7 @@
         $('#loader').removeClass('hidden');
         const mentor_id = $('select[name=select-mentor]').find(':selected').val();
         const group_id = $('input[name=group-id]').val();
-        $.post('app/admin/group/assign',{group_id : group_id,mentor_id : mentor_id},(res,err)=>{
+        $.post('/app/admin/group/assign',{group_id : group_id,mentor_id : mentor_id},(res,err)=>{
             if(res.res && err==="success"){
                 handleResponse(true,'Successfully assigned!');
             } else {
@@ -643,7 +643,7 @@
             user_type : 'existing',
         };
         $('loader').removeClass('hidden');
-        $.post('app/admin/group/user',postBody,(res,err)=>{
+        $.post('/app/admin/group/user',postBody,(res,err)=>{
             if(res.res && err==='success'){
                 handleResponse(true,'Successfully user is added!.')
             } else {
@@ -661,7 +661,7 @@
         const password_regex =  /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
         if (email_regex.test(user_email) && password_regex.test(user_password)){
             const group_id = $('input[name=group-id]').val();
-            $.post('app/admin/group/user',{
+            $.post('/app/admin/group/user',{
                 user_type : 'new',
                 email : user_email,
                 password : user_password,
@@ -688,7 +688,7 @@
             group_auth_id : group_auth_id,
         };
         $('#loader').removeClass('hidden');
-        $.post('app/admin/post/access/group',postBody,(res,err)=>{
+        $.post('/app/admin/post/access/group',postBody,(res,err)=>{
             if(res.res && err==='success'){
                 window.location.reload();
             } else {

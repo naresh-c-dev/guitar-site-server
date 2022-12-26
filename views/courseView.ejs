@@ -149,7 +149,7 @@
         const description = $('input[name=description]').val();
         const video = document.getElementById("video-file");
         const uploader = $('#uploader').removeClass('hidden');
-        $.post('app/admin/post/module',{course_id : id, module_title : title,module_content : description},(data,res)=>{
+        $.post('/app/admin/post/module',{course_id : id, module_title : title,module_content : description},(data,res)=>{
             if(res==="success"){
                 const upload = UpChunk.createUpload({
                     endpoint:data.upload_url,
