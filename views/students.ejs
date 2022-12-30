@@ -1,6 +1,4 @@
 <%- include('partials/header') %>
-
-
 <div class="flex-1 ml-40 bg-slate-200 h-screen" id="page">
     <div class="bg-emerald-400 p-8 flex justify-between">
         <h1 class="text-3xl text-white font-semibold">Students</h1>
@@ -159,6 +157,22 @@
                                 class="border-2 border-slate-900 px-2 py-1 capitalize rounded-r-lg focus:outline-none w-full"
                                 readonly>
                         </div>
+                        <div class="flex items-center p-2">
+                            <span
+                                class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-lg text-white">User Type
+                            </span>
+                            <input type="text" name="user-type" value=""
+                                class="border-2 border-slate-900 px-2 py-1 capitalize rounded-r-lg focus:outline-none w-full"
+                                readonly>
+                        </div>
+                        <div class="flex items-center p-2">
+                            <span
+                                class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-lg text-white">Group Status
+                            </span>
+                            <input type="text" name="group-status" value=""
+                                class="border-2 border-slate-900 px-2 py-1 capitalize rounded-r-lg focus:outline-none w-full"
+                                readonly>
+                        </div>
                         <div class="flex flex-col p-2 col-span-2 hidden" id="subscribed-users" >
                             <div class="flex">
                                 <span
@@ -206,6 +220,12 @@
                 $("input[name=email]").val(data.data.email);
                 $("input[name=plan]").val(data.data.subscribed_plan);
                 $("input[name=student-id]").val(data.data._id);
+                $("input[name=user-type]").val(data.data.manual_status?'Manual Login' : 'App Login');
+                $("input[name=group-status]").val(data.data.group_status?'Group':'Individual');
+                if(data.data.group_status){
+                    $("#user-group").removeClass("hidden");
+                    $("input[name=group-email]").val(data.data.group.email);
+                }
                 if (data.data.subscribed_plan != "free") {
                     
                     $("input[name=current-mentor]").val(data.data?.current_mentor?.mentor?.email);

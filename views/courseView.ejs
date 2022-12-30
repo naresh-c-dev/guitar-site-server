@@ -5,35 +5,50 @@
         <h1 class="text-3xl text-white font-semibold ">Course</h1>
     </div>
     <div class="bg-white p-4 m-4 rounded-2xl">
-        <div class="ml-4 m-4 grid grid-cols-3 gap-3 bg-white p-4 rounded-2xl ">
+        <div class="ml-4 m-4 flex flex-col w-full gap-3 bg-white p-4 rounded-2xl ">
             <div class="flex items-center p-2">
-                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 ">
+                <p class="text-md bg-slate-900 text-white px-2 w-1/6 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 ">
                     Title
                 </p>
-                <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md " type="text"
-                    value="<%= locals.data.course_title   %>" readonly />
+                <input class="border-slate-900 border-2  px-2 py-1 w-5/6 focus:outline-none rounded-r-md " type="text" name="course-title"
+                    value="<%= locals.data.course_title   %>" />
             </div>
             <div class="flex items-center p-2">
-                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 ">
+                <p class="text-md bg-slate-900 text-white px-2 w-1/6 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 ">
                     Features
                 </p>
-                <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md " type="text"
-                    value="<%= locals.data.course_features   %>" readonly />
+                <input class="border-slate-900 border-2 overflow-scroll w-5/6 px-2 py-1 focus:outline-none rounded-r-md " type="text" name="course-features"
+                    value="<%= locals.data.course_features   %>" />
             </div>
             <div class="flex items-center p-2">
-                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 ">
+                <p class="text-md bg-slate-900 h-10 text-white px-2 py-1 w-1/6 border-2 border-slate-900 rounded-l-md  -mr-1 ">
                     Plan
                 </p>
-                <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md capitalize " type="text"
-                    value="<%= locals.data.subscription_plan   %>" readonly />
+                <select class="border-slate-900 border-2 h-10 bg-white px-2 py-1 w-5/6 focus:outline-none rounded-r-md capitalize " name="subscription-plan"
+                 >
+                    <option value="free">Free</option>
+                    <option value="pro" >Pro</option>
+                    <option value="plus" >Pro-Plus</option>    
+                </select>
+            </div>
+            <div class="flex items-center p-2">
+                <button type="button" class="bg-emerald-400 drop-shadow-2xl hover:scale-105 px-4 py-2 rounded-md text-white" onclick="updateCourse()">Save</button>
             </div>
         </div>
     </div>
     <div class="p-4 m-4  rounded-2xl drop-shadow-2xl">
-        <div class="bg-emerald-400 text-white rounded-2xl p-3 cursor-pointer hover:shadow-sm hover:shadow-black font-semibold " id="add-module-btn" onclick="addToggle()">
+        <div class="bg-emerald-400 text-white text-center rounded-t-2xl p-3 text-lg font-semibold " id="add-module-btn">
             <span>Add New Module</span>
         </div>
-        <div class="-mt-1 bg-white rounded-b-lg hidden" id="add-module" >
+        <div class=" -mt-1 border-t-2 text-center rounded-b-2xl bg-emerald-400 p-3 font-semibold text-white  flex">
+            <div class="flex-1 cursor-pointer hover:scale-110 border-r-2 " onclick="addModuleVideo(this)">
+               <span>Video</span> 
+            </div>
+            <div class="flex-1 cursor-pointer hover:scale-110" onclick="addModuleDoc(this)" >
+                <span>Document</span>
+            </div>
+        </div>
+        <div class="-mt-1 bg-white rounded-b-lg hidden" id="add-module-video" >
               <div class="flex items-center p-2">
                 <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 w-2/6 ">
                     Module Title
@@ -83,13 +98,49 @@
                     <input name="upload-status" class="bg-emerald-400 focus:outline-none w-16" type="text" name="upload-status" value="0" readonly/>
                 </div>
                 
-                <button id="<%= locals.data._id %>" class="bg-emerald-400 px-4 py-1 text-white rounded-md m-2 submit-btn" onclick="submitModule(this)">Submit</button>
+                <button id="video" class="bg-emerald-400 px-4 py-1 text-white rounded-md m-2 submit-btn" onclick="submitModule(this)">Submit</button>
+            </div>
+        </div>
+        <div class="-mt-1 bg-white rounded-b-lg hidden " id="add-module-doc">
+            <div class="flex items-center p-2">
+                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 w-2/6 ">
+                    Module Title
+                </p>
+                <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md w-5/6 " name="doc-title" type="text"
+                     required/>
+            </div>
+            <div class="flex items-center p-2">
+                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 w-2/6 ">
+                    Module Description
+                </p>
+                <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md w-5/6 " name="doc-des" type="text"
+                     required/>
+            </div>
+            <div class="flex items-center p-2">
+                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 w-2/6 ">
+                    Document Title
+                </p>
+                <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md w-5/6 " name="doc-link-title" type="text"
+                     required/>
+            </div>
+            <div class="flex items-center p-2">
+                <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 w-2/6 ">
+                    Module Document Link
+                </p>
+                <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md w-5/6 " name="doc-url" type="url"
+                     required/>
+            </div>
+            <div class="flex items-center p-2">
+                <p><b>Note: </b> The provided link must it google drive document URL and access settings must be "Anyone with link"    </p>
+            </div>
+            <div>
+                <button class="bg-emerald-400 px-4 py-1 text-white rounded-md m-2 submit-btn" id="doc" onclick="submitModule(this)">Submit</button>
             </div>
         </div>
     </div>
     <div class="bg-white  p-4 m-4 rounded-2xl">
         <% locals.data.modules.forEach((module)=>{  %> 
-            <div class="container-fluid relative" id="<%=module._id%> " >
+            <div class="container-fluid relative" id="<%=module._id%>" >
                 <div class="flex items-center p-2">
                     <p class="text-md bg-slate-900 text-white px-2 py-1 border-2 border-slate-900 rounded-l-md  -mr-1 w-2/6 ">
                         Module Title
@@ -98,7 +149,14 @@
                         readonly/>
                         
                 </div>
-                <button class="p-1 absolute right-8 top-2" onclick="toggleModule(this)" >View</button>
+                <% if( module?.module_type) {%>
+                <input type="hidden" name="module-type" value="doc"/>
+                <%} else {%>
+                    <input type="hidden" name="module-type" value="video"/>
+                    <input type="hidden" name="module-upload-id" value="<%= module?.upload._id%>"/>
+                <%}%>
+                <button class="p-1 absolute right-20 top-2" onclick="toggleModule(this)" >View</button>
+                <button class="p-1 absolute right-8 top-2 text-red-400 text-xl hover:scale-105 " onclick="deleteConfirmation(this)" > <i class="fa-solid fa-trash"></i></button>
                 <div class="hidden text-black toggle">
                     
                     <div class="flex items-center p-2">
@@ -108,28 +166,71 @@
                         <input class="border-slate-900 border-2  px-2 py-1 focus:outline-none rounded-r-md w-5/6 " name="title" type="text" value="<%= module.content %> "
                             readonly/>
                     </div>
-                    <video 
-  id="my-player" 
-  class="video-js vjs-16-9" 
-  controls 
-  preload="auto" 
-  width="100%"
-  data-setup='{}'
->
-  <source src=<%= module.upload?.mux_playback_id %> type="video/mux" />
-</video>
+                    
+                    <% if(module?.module_type){ %>
+                        <iframe src="<%= module.notes.link%>" frameborder="0"></iframe>
+                    <%} else {%> 
+                        <video 
+                            id="my-player" 
+                            class="video-js vjs-16-9" 
+                            controls 
+                            preload="auto" 
+                            width="100%"
+                            data-setup='{}'
+                            >
+                            <source src="<%= module.upload?.mux_playback_id %>" type="video/mux" />
+                        </video>
+                    <%}%>   
+                    
                 </div>
                 </div>
             <%});%>
     </div>
 </div>
-
+<div class="m-auto absolute left-0 right-0 top-1/3 bottom-0 w-3/6 drop-shadow-2xl hidden " id="delete-confirmation">
+    <div class="bg-white rounded-2xl relative">
+        <div class="relative">
+            <div class="mt-10 p-2">
+                    <input type="hidden" name="delete-module-id">
+                    <input type="hidden" name="delete-upload-id">
+                    <input type="hidden" name="delete-module-type">
+                    <div class="grid px-6 m-4  text-center grid-cols-2 ">
+                        <div class=" col-span-2 text-xl py-2 my-4 items-center p-2 ">
+                           <p>Once the module is deleted, It can't be recovered. <br> Are you sure to continue?</p>
+                        </div>
+                        <div class="" >
+                            <button type="button" class="border-red-400 border-2 rounded-lg px-6 py-2" onclick="deleteConfirmationCancel()"> Cancel </button>
+                        </div>
+                        <div class="">
+                            <button type="button" class="bg-red-400 text-white px-6 py-2 rounded-lg " onclick="deleteConfirmationDelete()"> Delete </button>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="m-auto absolute left-0 right-0 top-1/3 bottom-0 w-3/6 drop-shadow-2xl hidden" id="response">
+    <div class="bg-white rounded-2xl relative">
+        <div class="text-slate-900 absolute top-1 right-4 z-20" onclick="handleStatusCrossClick(this)">
+            <i class="fa-solid fa-xmark  text-3xl hover:cursor-pointer "></i>
+        </div>
+        <div class="relative">
+            <div class="mt-4 p-2">
+            
+                <input type="text" name="response" 
+                                class="border-0 p-4 text-2xl focus:outline-none w-full" readonly>
+            </div>
+        </div>
+    </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@mux/videojs-kit@latest/dist/index.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mux/videojs-kit@latest/dist/index.css">
 <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player"></script>
 <script src="https://unpkg.com/@mux/upchunk@2"></script>
 <script>
     $("#courses").addClass("bg-emerald-400");
+    const query = `select[name=subscription-plan] option[value=${"<%= locals.data.subscription_plan%>"}]`;
+    $(query).prop('selected',true);
     function handleModuleAccess(event) {
 
         // $.post('/admin/post/access/module',{},(data,err)=>{
@@ -137,45 +238,150 @@
         // });
         console.log(event);
     }
-    function addToggle(){
-        $("#add-module").toggleClass("hidden");
-        $("#add-module-btn").toggleClass("rounded-2xl");
-        $("#add-module-btn").toggleClass("rounded-t-2xl");
+    function addModuleVideo(event){
+        event.parentNode.classList.remove('rounded-b-2xl');
+        $("#add-module-video").removeClass("hidden");
+        $("#add-module-doc").addClass("hidden");
+    }
+    function addModuleDoc(event){
+        event.parentNode.classList.remove('rounded-b-2xl');
+        $('#add-module-doc').removeClass('hidden');
+        $("#add-module-video").addClass("hidden");
     }
     function submitModule(event){
-        const id = event.getAttribute('id');
-        event.classList.add("hidden");
-        const title = $('input[name=title]').val();
-        const description = $('input[name=description]').val();
-        const video = document.getElementById("video-file");
-        const uploader = $('#uploader').removeClass('hidden');
-        $.post('/app/admin/post/module',{course_id : id, module_title : title,module_content : description},(data,res)=>{
-            if(res==="success"){
-                const upload = UpChunk.createUpload({
-                    endpoint:data.upload_url,
-                    file:video.files[0],
-                    chunkSize:30720
-                });
-                upload.on("error",err=>{
-                    console.log(err.detail);
-                    alert("Error Occured");
-                });
-                upload.on("progress",progress =>{
-                    $("input[name=upload-status]").val(parseInt(progress.detail));
-                });
-                upload.on("success",()=>{
-                    $("input[name=status]").val("Uploaded");
-                    setTimeout(()=>{event.classList.remove('hidden'),uploader.addClass("hidden")},3000)
-                });
-            }
-        });
+        const module_type = event.id;
+        const id = "<%= locals.data._id %>";
+        if (module_type === "video"){
+            event.classList.add("hidden");
+            const title = $('input[name=title]').val();
+            const description = $('input[name=description]').val();
+            const video = document.getElementById("video-file");
+            const uploader = $('#uploader').removeClass('hidden');
+            $.post('/app/admin/post/module',{course_id : id, module_title : title,module_content : description, module_type : 'video'},(data,res)=>{
+                if(res==="success"){
+                    const upload = UpChunk.createUpload({
+                        endpoint:data.upload_url,
+                        file:video.files[0],
+                        chunkSize:30720
+                    });
+                    upload.on("error",err=>{
+                        console.log(err.detail);
+                        alert("Error Occured");
+                    });
+                    upload.on("progress",progress =>{
+                        $("input[name=upload-status]").val(parseInt(progress.detail));
+                    });
+                    upload.on("success",()=>{
+                        $("input[name=status]").val("Uploaded");
+                        setTimeout(()=>{event.classList.remove('hidden'),uploader.addClass("hidden")},3000)
+                    });
+                }
+            });
+        } else {
+            const title = $('input[name=doc-title]').val();
+            const description = $('input[name=doc-des]').val();
+            const url = $('input[name=doc-url]').val();
+            const document_title = $("input[name=doc-link-title]").val();
+            $.post('/admin/post/module',{
+                course_id : id,
+                module_title : title,
+                module_content : description,
+                document_title : document_title,
+                document_link : url,
+                module_type : 'doc',
+            },(res,con)=>{
+                if(con === 'success'){
+                    console.log(res)
+                    if(res.res)
+                        response(true,"");
+                    else
+                        response(false,"Server responded with error, Check console logs");
+                } else {
+                    response(false,"Unable to connect with server, Try again later.")
+                }
+            });
+        }
+        
     }
+    
+
     function toggleModule(event){
         const container = event.parentNode.querySelector(".toggle");
         if (container.classList.contains('hidden'))
             container.classList.remove('hidden');
         else
             container.classList.add("hidden");
+    }
+    function deleteConfirmation(event){
+        const moduleID = event.parentNode.getAttribute('id');
+        const module_type = event.parentNode.querySelector("input[name=module-type]").value;
+        if(module_type==='video'){
+            $("input[name=delete-upload-id]").val(event.parentNode.querySelector("input[name=module-upload-id]").value)
+        }
+        $("input[name=delete-module-type]").val(module_type);
+        $("input[name=delete-module-id]").val(moduleID);
+        $('#page').addClass('opacity-30');
+        $('#delete-confirmation').removeClass('hidden');
+    }
+    function deleteConfirmationCancel(){
+        $("input[name=delete-module-id]").val("");
+        $('input[name=delete-upload-id]').val("");
+        $("#page").removeClass('opacity-30');
+        $('#delete-confirmation').addClass('hidden');
+    }
+    function deleteConfirmationDelete(){
+        $("#loader").removeClass("hidden");
+        const courseID = "<%= locals.data._id%>";
+        const moduleID = $('input[name=delete-module-id]').val();
+        const uploadID = $('input[name=delete-upload-id]').val();
+        const moduleType = $('input[name=delete-module-type]').val();
+        const bodyData = {
+            course_id : courseID,
+            module_id : moduleID,
+            upload_id : uploadID,
+            module_type : moduleType,
+        }
+        console.log(bodyData);
+        $.post('/admin/delete/module',bodyData,(res,con)=>{
+            if(con==="success"){
+                if(res.res)
+                    response(true,'');
+                else
+                    response(false,"Server responded with error! Check console logs");    
+            } else 
+                respone(false,"Unable to make connection with server!");
+        });
+    }
+    function updateCourse(){
+        const courseID = "<%locals.data._id%>";
+        const bodyData ={
+            course_id : courseID,
+            course_title : $("input[name=course-title]").val(),
+            course_features : $('input[name=course-features]').val(),
+            plan : $("select[name=subscription-plan]").val()
+        };
+        $.post('/admin/update/course',bodyData,(res,con)=>{
+            if(con ==='success'){
+                if(res.res===true){
+                   response(true,"");
+                } else {
+                    response(false,"Server responded with error! Check console logs.");
+                }
+            } else {
+                response(false,"Unable to connect with server! Try again later.");
+            }
+        })
+    }
+    function response(res,msg){
+        if(res){
+            window.location.reload();
+        }else {
+            $("#loader").addClass('hidden');
+            $("#page").addClass("opacity-30");
+            $('#response').removeClass('hidden');
+            $("input[name=response]").val(msg);
+        }
+        
     }
 </script>
 

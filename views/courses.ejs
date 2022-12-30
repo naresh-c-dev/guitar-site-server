@@ -3,7 +3,10 @@
 <div class="flex-1 ml-40 bg-slate-200 h-screen" id="page">
     <div class="bg-emerald-400 p-8 flex justify-between ">
         <h1 class="text-3xl text-white font-semibold ">Courses</h1>
-        <button onclick="addCourse()" class="border-2  rounded-md border-slate-900 hover:scale-105 font-bold px-2 py-1"> Add New Course </button>
+        <div>
+            <button onclick="addFeaturedCourse()" class="border-2 mx-1 rounded-md border-slate-900 hover:scale-105 font-bold px-2 py-1">Add Featured Courses</button>
+            <button onclick="addCourse()" class="border-2 mx-1 rounded-md border-slate-900 hover:scale-105 font-bold px-2 py-1"> Add New Course </button>
+        </div>
     </div>
     <div class="ml-4 m-4 grid grid-cols-3 gap-3 bg-white p-4 rounded-2xl ">
         <div class="flex items-center p-2 ">
@@ -120,13 +123,79 @@
         </div>
     </div>
 </div>
+<div class="m-auto absolute left-0 right-0 top-20 bottom-0 w-3/6 drop-shadow-2xl hidden" id="add-featured-course">
+    <div class="bg-white rounded-2xl relative">
+        <div class="text-slate-900 absolute top-1 right-4 z-20" onclick="handleFeaturedCrossClick(this)">
+            <i class="fa-solid fa-xmark  text-3xl hover:cursor-pointer "></i>
+        </div>
+        <div class="relative">
+            <div class="px-4 py-2 font-bold text-white rounded-t-2xl bg-emerald-400 text-xl ">
+                Select Featured Courses </div>
+            <div class="mt-4 p-2">
+                    <div class="flex flex-col ">
+                        <div class="flex items-center p-2 ">
+                            <span
+                                class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white w-2/6">Course 1
+                            </span>
+                            <select name="featured-course-1"
+                                class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-4/6 featured-course " required>
+                                <% locals.data.forEach(course=>{ %>
+                                    <option value="<%= course._id%>" class="capitalize text-sm font-md text-gray-700" ><%= course.course_title%></option>
+                                <% }); %>  
+                            </select>
+                        </div>
+                        <div class="flex items-center p-2 ">
+                            <span class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white w-2/6" required>Course 2
+                            </span>
+                            <select type="text" name="featured-course-2"
+                                class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-4/6 featured-course " required>
+                                <% locals.data.forEach(course=>{ %>
+                                    <option value="<%= course._id%>" class="capitalize text-sm font-md text-gray-700" ><%= course.course_title%></option>
+                                <% }); %>  
+                            </select>
+                        </div>
+                        <div class="flex items-center p-2 ">
+                            <span class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white w-2/6">Course 3
+                            </span>
+                            <select type="text" name="featured-course-3"
+                                class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-4/6 featured-course " required>
+                                    <% locals.data.forEach(course=>{ %>
+                                        <option value="<%= course._id%>" class="capitalize text-sm font-md text-gray-700" ><%= course.course_title%></option>
+                                    <% }); %>    
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex w-full justify-center ">
+                        <button type="submit" class="mx-auto my-2 px-6 py-2 bg-emerald-400  hover:scale-105 rounded-md" onclick="submitFeaturedCourses()" >Submit</button>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="m-auto absolute left-0 right-0 top-1/3 bottom-0 w-3/6 drop-shadow-2xl hidden" id="response">
+    <div class="bg-white rounded-2xl relative">
+        <div class="text-slate-900 absolute top-1 right-4 z-20" onclick="handleStatusCrossClick(this)">
+            <i class="fa-solid fa-xmark  text-3xl hover:cursor-pointer "></i>
+        </div>
+        <div class="relative">
+            <div class="mt-4 p-2">
+                    <div class="flex flex-col ">
+                        <div class="flex items-center p-2 ">
+                            <input type="text" name="response" 
+                                class="border-0 p-4 text-2xl focus:outline-none w-4/6" readonly>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
     const homeNav = $("#courses")
     homeNav.addClass("bg-emerald-400");
     function viewCourse(event){
         
         console.log(event.getAttribute('id'));
-        window.location.href="/app/admin/courses/"+event.getAttribute('id');
+        window.location.href="/admin/courses/"+event.getAttribute('id');
     }
     function handleCourseAccess(event) {
         const status = event.id == "true" ? true : false;
@@ -172,5 +241,43 @@
             }
             }
         }
+    function addFeaturedCourse(){
+        const selectElement =  $("select.featured-course");
+        const courseList =[];
+        courseList.forEach(course=>{
+            $('<option>').text(courseList.course_title).addClass('capitalize text-sm font-md text-gray-700').val(courseList._id).appendTo(selectElement);
+        });
+        $('#page').addClass('opacity-30');
+        $('#add-featured-course').removeClass('hidden');
+    }
+    function handleFeaturedCrossClick(){
+        $('#add-featured-course').addClass('hidden');
+        $('#page').removeClass('opacity-30');
+    }
+    function submitFeaturedCourses(){
+        const course1 = $("select[name=featured-course-1]").val();
+        const course2 = $("select[name=featured-course-2]").val();
+        const course3 = $('select[name=featured-course-3]').val();
+        $('#loader').removeClass('hidden');
+        $.post('/admin/featured-course',{course_1:course1, course_2 : course2, course_3 : course3},(res, err)=>{
+            if(err==='success'){
+                if(res.res){
+                    $('input[name=response]').val('Successfully updated!').addClass('text-emerald-400');
+                } else {
+                    $('input[name=response]').val('Something went wrong! Error from Server.').addClass('text-red-400');
+                }
+            } else {
+                $('input[namer=esponse]').val('Unable to make connection to server').addClass('text-red-400');
+            }
+            $('#response').removeClass('hidden');
+            $('#add-featured-course').addClass('hidden');
+            $('#loader').addClass('hidden');
+
+        });
+    }
+    function handleStatusCrossClick (){
+        $("#page").removeClass('opacity-30');
+        $("#response").addClass('hidden');
+    }    
 </script>
 <%- include('partials/footer')%>

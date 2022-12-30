@@ -36,6 +36,7 @@ const ManagementClient = require('auth0').ManagementClient;
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
+const console = require('console');
 
 const corsOptions = {
     origin: process.env.CORS_ORGIN,
@@ -244,6 +245,9 @@ const courseSchema = new mongoose.Schema({
             ref: Upload
         },
         module_status: Boolean,
+        module_type : {
+            type : Boolean,
+        },
         notes_status: Boolean,
         notes: {
             title: String,
@@ -1664,6 +1668,7 @@ router.get('/admin/courses', (req, res) => {
     } else {
         Courses.find({})
             .populate('modules.upload')
+            .select('-created_at -course_img')
             .exec((err, data) => {
                 if (!err) {
                     res.render('courses', {
@@ -1727,51 +1732,162 @@ router.post('/admin/post/module', async (req, res) => {
     if (!req.isAuthenticated()) {
         res.redirect('/');
     } else {
-        const newUpload = await Video.Uploads.create({
-            cors_origin: process.env.MUX_WEBHOOK_URL,
-            new_asset_settings: {
-                playback_policy: 'public'
-            }
-        });
-        Upload.create({
-            mux_upload_id: newUpload.id,
-            type: "course"
-        }, (err, uploadData) => {
-            if (!err) {
-                Courses.updateOne({
-                    _id: req.body.course_id
-                }, {
-                    $push: {
-                        modules: {
-                            title: req.body.module_title,
-                            content: req.body.module_content,
-                            upload: uploadData._id,
-                            module_status: false,
-                            notes_status:req.body.notes_status,
-                            notes : {
-                                notes_title:req.body?.notes_title,
-                                notes_link : req.body?.notes_link
-                            } 
+        console.log(req.body);
+        if(req.body.module_type === 'video'){
+            const newUpload = await Video.Uploads.create({
+                cors_origin: process.env.MUX_WEBHOOK_URL,
+                new_asset_settings: {
+                    playback_policy: 'public'
+                }
+
+            });
+            Upload.create({
+                mux_upload_id: newUpload.id,
+                type: "course"
+            }, (err, uploadData) => {
+                if (!err) {
+                    Courses.updateOne({
+                        _id: req.body.course_id
+                    }, {
+                        $push: {
+                            modules: {
+                                title: req.body.module_title,
+                                content: req.body.module_content,
+                                upload: uploadData._id,
+                                module_status: false,
+                                module_type : false,
+                                notes_status:req.body.notes_status,
+                                notes : {
+                                    title:req.body?.notes_title,
+                                    link : req.body?.notes_link
+                                } 
+                            }
                         }
+                    }, (courerr) => {
+                        if (courerr) {
+                            res.json({
+                                res: false
+                            });
+                            console.log(courerr);
+                        } else {
+                            res.json({
+                                res: true,
+                                upload_url: newUpload.url
+                            });
+                        }
+                    });
+                } else {
+                    res.json({
+                        res: false
+                    });
+                    console.log(err);
+                }
+            });
+        } else if(req.body?.module_type === 'doc'){
+            Courses.updateOne({_id : req.body.course_id},{
+                $push :{
+                modules : {
+                        title : req.body.module_title,
+                        content : req.body.module_content,
+                        module_type : true,
+                        notes : {
+                            title : req.body?.document_title,
+                            link : req.body?.document_link,
+                        },
+                        module_status : false,
                     }
-                }, (courerr) => {
-                    if (courerr) {
-                        res.json({
-                            res: false
-                        });
-                        console.log(courerr);
-                    } else {
-                        res.json({
-                            res: true,
-                            upload_url: newUpload.url
-                        });
-                    }
+                }
+            }, (courseErr)=>{
+                if(courseErr){
+                    res.json({res:false});
+                    console.error(courseErr);
+                } else {
+                    res.json({res:true});
+                }
+            });
+        } else {
+            res.json({res:false});
+        }
+    }
+});
+
+router.post('/admin/delete/module',(req,res)=>{
+    if(!req.isAuthenticated()){
+        res.redirect('/');
+    } else {
+        console.log(req.body);
+        if(req.body.module_type === 'video'){
+            Upload.findOneAndDelete({
+                _id : req.body.upload_id
+            },(uploadErr,uploadData)=>{
+                console.log(uploadData);
+                Video.Assets.del(uploadData.mux_assest_id).then((response)=>{
+                    console.log(response);
+                    Courses.updateOne({
+                        _id : req.body.course_id
+                    },{
+                        $pull :{
+                            modules : {
+                                _id : req.body.module_id
+                            }
+                        }
+                    },(courseErr)=>{
+                        res.json({res:true});
+                    });
+                }).catch(err=>{
+                    Courses.updateOne({_id : req.body.course_id},{
+                        $pull :{
+                            modules : {
+                                _id : req.body.module_id
+                            }
+                        }
+                    },(courseErr)=>{
+                        res.json({res:true});
+                    });
+                    console.log(err);
                 });
+            });
+        } else if(req.body.module_type === "doc"){
+            Courses.updateOne({
+                _id : req.body.course_id
+            },{
+                $pull :{
+                    modules : {
+                        _id : req.body.module_id
+                    }
+                }
+            },(courseErr)=>{
+                if(courseErr){
+                    res.json({res:false});
+                    console.error(courseErr);
+                } else 
+                    res.json({res:true});
+            })
+        } else {    
+            res.json({res:false});
+        }
+        
+    }
+});
+
+router.post('/admin/update/course',(req,res)=>{
+    if(!req.isAuthenticated()){
+
+    } else {
+        Courses.updateOne({
+            _id : req.body.course_id,
+        },{
+            $set : {
+                course_title : req.body.course_title,
+                course_features : req.body.course_features,
+                subscription_plan : req.body.plan
+            }
+        },(courseErr)=>{
+            if(courseErr){
+                res.json({res:false});
+                console.error(courseErr);
             } else {
-                res.json({
-                    res: false
-                });
-                console.log(err);
+                res.json({res:true});
             }
         });
     }
@@ -2257,6 +2373,31 @@ router.post('/admin/archives/module', async (req, res) => {
 
     }
 });
+
+router.post('/admin/featured-course',(req,res)=>{
+    if(!req.isAuthenticated()){
+        res.redirect('/');
+    } else {
+        Home_Data_Model.updateMany({},{
+            $set : {
+                featured_course_1 : req.body.course_1,
+                featured_course_2 : req.body.course_2,
+                featured_course_3 : req.body.course_3,
+            }
+        },(err)=>{
+            if(err){
+                res.json({res:false});
+                console.error(err);
+            } else {
+                res.json({res:true});  
+            }
+        });
+    }
+});
+
+
+
+
 // ######## Webhhook
 router.post('/mux/webhook', (req, res) => {
     if (req.body.data.status === "ready" && req.body.type === "video.asset.ready") {
@@ -2272,13 +2413,13 @@ router.post('/mux/webhook', (req, res) => {
             })
         } catch (err) {
             console.error(err);
-        }
+        } 
        
     }
 });
 
 app.use('/',router);
-
+ 
 app.listen(process.env.PORT || 3001, (err) => {
     if (!err) {
         console.log("Server Initiated port : 3001");
