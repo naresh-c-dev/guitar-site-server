@@ -353,7 +353,7 @@
         });
     }
     function updateCourse(){
-        const courseID = "<%locals.data._id%>";
+        const courseID = "<%= locals.data._id%>";
         const bodyData ={
             course_id : courseID,
             course_title : $("input[name=course-title]").val(),
