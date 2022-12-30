@@ -1732,7 +1732,6 @@ router.post('/admin/post/module', async (req, res) => {
     if (!req.isAuthenticated()) {
         res.redirect('/');
     } else {
-        console.log(req.body);
         if(req.body.module_type === 'video'){
             const newUpload = await Video.Uploads.create({
                 cors_origin: process.env.MUX_WEBHOOK_URL,
@@ -1815,7 +1814,6 @@ router.post('/admin/delete/module',(req,res)=>{
     if(!req.isAuthenticated()){
         res.redirect('/');
     } else {
-        console.log(req.body);
         if(req.body.module_type === 'video'){
             Upload.findOneAndDelete({
                 _id : req.body.upload_id
