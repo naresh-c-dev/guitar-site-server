@@ -2027,7 +2027,7 @@ router.post('/admin/post/user', (req, res) => {
                     const newUserStudent = new User_Student({
                         email: user.email,
                         authID: user.user_id,
-                        mentor_status: true,
+                        mentor_status: false,
                         subscribed_plan: req.body.plan,
                         subscription_status: true,
                         manual_add: true,
