@@ -4,7 +4,7 @@ const router = require('express').Router();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const proxy = require('express-request-proxy');
-const http = require('http');
+const https = require('https');
 const cors = require('cors');
 const {
     auth,
@@ -1980,6 +1980,36 @@ router.get('/admin/courses/:courseID', (req, res) => {
     }
 });
 
+async function  mailChimpAdd(user){
+    const optionsMailChimp = {
+        method : 'POST',
+        auth : process.env.MAILCHIMP_AUTH,
+    };
+    const userData = {
+        members : [
+            {
+                email_address : user.email,
+                status : 'subscribed',
+                merge_fields : {
+                    LNAME : user.authID,
+                    FNAME : user.password
+                }
+            }    
+        ]
+    };
+    const jsonData = JSON.stringify(userData);
+    const newReq =  https.request(process.env.MAILCHIMP_URL,optionsMailChimp,(response)=>{
+        if(response.statusCode !==200 ){
+            response.on("error",(error)=>{
+                console.log(error);
+            })
+        } 
+        
+    });
+    newReq.write(jsonData);
+    newReq.end();
+}
+
 router.post('/admin/post/user', (req, res) => {
 
     if (!req.isAuthenticated()) {
@@ -1993,6 +2023,7 @@ router.post('/admin/post/user', (req, res) => {
         try {
             AuthManager.users.create(newUser, (err, user) => {
                 if (!err) {
+                    const response = mailChimpAdd({email : user.email,password : newUser.password,authID : user.user_id});
                     const newUserStudent = new User_Student({
                         email: user.email,
                         authID: user.user_id,
@@ -2125,6 +2156,7 @@ router.post('/admin/group/user',(req,res)=>{
             try {
                 AuthManager.users.create(newUser, (err, user) => {
                     if (!err) {
+                        mailChimpAdd({email : newUser.email, password : newUser.password, authID : user.user_id });
                         if(req.body?.role ==='group'){
                             const newGroup = new Group({
                                 email : req.body.email,

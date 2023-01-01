@@ -55,7 +55,7 @@
                     <td scope=""> <%= element.email %></td>
                     <td scope="" class="capitalize"><%= element.subscribed_plan%></td>
                     <% if ((element.subscriped_plan != "free") && element.mentor_status ==true)  { %>
-                    <td scope="" > <%=element.current_mentor.mentor.email %></td>
+                    <td scope="" > <%=element.current_mentor?.mentor?.email %></td>
                     <% } else { %>
                     <td>-</td>
                     <% } %>
