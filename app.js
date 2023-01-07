@@ -318,7 +318,7 @@ const mentorSchema = new mongoose.Schema({
     status: Boolean,
     students: [{
        student : {
-        type:mongoose.SchemaTypes.ObjectId,
+        type : mongoose.SchemaTypes.ObjectId,
         ref : User_Student,
        },
         created_at: {
@@ -1188,7 +1188,7 @@ router.get('/api/payment/', requiresAuth(), (req, res) => {
             authID : req.oidc.user.sub
         })
         .exec((err,data)=>{
-            res.render('PaymentPage',{
+            res.render('paymentPage',{
                 subscription_id : data.subscription_id,
                 key : process.env.RAZOR_KEY_ID,
                 role : 'group',
