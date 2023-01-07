@@ -1012,7 +1012,7 @@ router.get('/api/profile', requiresAuth(), (req, res) => {
                         if (req.query?.role === "mentor") {
                             Mentor.findOne({
                                 authID: req.oidc.user.sub
-                            }, (Merr, data) => {
+                            }, (Merr, Mdata) => {
                                 if (Merr || Mdata) {
                                     if(Merr)
                                         console.error(Merr);
