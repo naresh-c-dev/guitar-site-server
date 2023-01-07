@@ -1030,7 +1030,8 @@ router.get('/api/profile', requiresAuth(), (req, res) => {
                                         if(!mentorSaveErr){
                                             res.redirect(process.env.APP_URL);
                                         } else {
-                                            res.send('Error');
+                                            res.send('Error' + mentorSaveErr);
+                                            console.log(mentorSaveErr);
                                         }
                                     });
                                 }
