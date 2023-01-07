@@ -1007,7 +1007,7 @@ router.get('/api/profile', requiresAuth(), (req, res) => {
                     authID: req.oidc.user.sub,
                     role: req.query.role
                 });
-                newUser.save((saveErr=>{
+                newUser.save(saveErr=>{
                     if(!saveErr){
                         if (req.query?.role === "mentor") {
                             Mentor.findOne({
@@ -1128,7 +1128,7 @@ router.get('/api/profile', requiresAuth(), (req, res) => {
                         res.send('Error');
                         console.log(saveErr);
                     }
-                }));
+                });
             }
         });
 
