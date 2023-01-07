@@ -319,7 +319,7 @@ const mentorSchema = new mongoose.Schema({
     students: [{
        student : {
         type:mongoose.SchemaTypes.ObjectId,
-        ref : 'User_Student',
+        ref : User_Student,
        },
         created_at: {
             type: Date,
