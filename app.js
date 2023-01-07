@@ -339,7 +339,7 @@ const mentorSchema = new mongoose.Schema({
     assigned_courses: [{
         course: {
             type: mongoose.SchemaTypes.ObjectId,
-            rel: 'Courses'
+            ref: 'Courses'
         }
     }],
 
@@ -1022,9 +1022,7 @@ router.get('/api/profile', requiresAuth(), (req, res) => {
                                     const newMentor = new Mentor({
                                         authID: req.oidc.user.sub,
                                         email: req.oidc.user.email,
-                                        students: [],
                                         status: false,
-                                        assigned_courses: []
                                     });
                                     newMentor.save(mentorSaveErr=>{
                                         if(!mentorSaveErr){
