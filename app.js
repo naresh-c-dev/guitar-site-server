@@ -2696,7 +2696,6 @@ router.post('/mux/webhook', (req, res) => {
 });
 
 app.use('/',router);
-app.use('/app',router);
  
 app.listen(process.env.PORT, (err) => {
     if (!err) {
