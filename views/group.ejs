@@ -1,5 +1,5 @@
 <%- include('partials/header') %>
-<div class="flex-1 ml-40 bg-slate-200 justify-center h-screen relative" id="page">
+<div class="w-5/6 bg-slate-200 justify-center h-screen relative" id="page">
         <div class="bg-emerald-400 flex justify-between p-8">
             <h1 class="text-3xl text-white font-semibold ">Groups</h1>
             <button type="button" onclick="handleAddGroup()" class="px-4 py-2 border-slate-900 border-2 focus:outline-none rounded-lg font-semibold hover:scale-105">Add New Group</button>
@@ -72,7 +72,7 @@
                             <div class="h-1 bg-emerald-400 hidden"></div>
                         </li>
                         <li class="hover:text-emerald-400 cursor-pointer">    
-                            <span class="hover:text-emerald-400 cursor-pointer px-2 font-semibold" onclick="handleRequestNav(this)" id="group-request-nav">Request</span>
+                            <span class="hover:text-emerald-400 cursor-pointer px-2 font-semibold" onclick="handleUploadNav(this)" id="group-upload-nav">Upload</span>
                             <div class="h-1 bg-emerald-400 w-100 hidden"></div>
                         </li>
                         <li class="hover:text-emerald-400 cursor-pointer">    
@@ -198,12 +198,12 @@
                             </div>
                         </div>
                     </div>
-                    <div id="group-request">
+                    <div id="group-upload">
                         <div class="p-4">
                             <span class="px-2">Status : </span>
                             <input type="text" name="request-status">
                         </div>
-                        <div id="group-request-list" class="grid grid-cols-2 gap-2 ">
+                        <div id="group-upload-list" class="grid grid-cols-2 gap-2 ">
                             <div class="flex items-center p-2">
                                 <span
                                     class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md w-full text-white">Requested Plan
@@ -444,7 +444,7 @@
                 $('input[name=group-customer-id]').val(data?.group_data?.razorpay_customer_id);
                 if (data.group_data?.request?.request_status){
                     $('input[name=request-status').val('Requested').addClass('text-emerald-400');
-                    $('#group-request-list').removeClass('hidden');
+                    $('#group-upload-list').removeClass('hidden');
                     $('input[name=request-plan]').val(data.group_data?.request?.plan);
                     $('input[name=request-size]').val(data.group_data?.request?.maximum_size);
                     const root = $('<div></div>').addClass('p-2 grid grid-cols-2 col-span-2');
@@ -458,7 +458,7 @@
                         root.append(div1);
                         root.append(div2);
                     }
-                    $("#group-request-list").append(root);
+                    $("#group-upload-list").append(root);
                 }else {
                     $('input[name=request-status').val('Not Requested').addClass('text-red-400 font-semibold');
                 }
@@ -519,23 +519,23 @@
     }
     function handleProfileNav(event){
         event.nextElementSibling.classList.remove('hidden');
-        document.getElementById('group-request-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-upload-nav').nextElementSibling.classList.add('hidden');
         document.getElementById('group-mentor-nav').nextElementSibling.classList.add('hidden');
         document.getElementById('group-plan-nav').nextElementSibling.classList.add('hidden');
         document.getElementById('group-user-nav').nextElementSibling.classList.add('hidden');
-        $('#group-request').addClass('hidden');
+        $('#group-upload').addClass('hidden');
         $('#group-profile').removeClass('hidden');
         $('#group-mentor').addClass('hidden');
         $('#group-plan').addClass('hidden');
         $('#group-add-user').addClass('hidden'); 
     }
-    function handleRequestNav(event){
+    function handleUploadNav(event){
         event.nextElementSibling.classList.remove('hidden');
         document.getElementById('group-profile-nav').nextElementSibling.classList.add('hidden');
         document.getElementById('group-mentor-nav').nextElementSibling.classList.add('hidden');
         document.getElementById('group-plan-nav').nextElementSibling.classList.add('hidden');
         document.getElementById('group-user-nav').nextElementSibling.classList.add('hidden');
-        $('#group-request').removeClass('hidden');
+        $('#group-upload').removeClass('hidden');
         $('#group-profile').addClass('hidden');
         $('#group-mentor').addClass('hidden');
         $('#group-plan').addClass('hidden');
@@ -543,11 +543,11 @@
     }
     function handlePlanNav(event) {
         event.nextElementSibling.classList.remove('hidden');
-        document.getElementById('group-request-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-upload-nav').nextElementSibling.classList.add('hidden');
         document.getElementById('group-mentor-nav').nextElementSibling.classList.add('hidden');
         document.getElementById('group-profile-nav').nextElementSibling.classList.add('hidden');
         document.getElementById('group-user-nav').nextElementSibling.classList.add('hidden');
-        $('#group-request').addClass('hidden');
+        $('#group-upload').addClass('hidden');
         $('#group-profile').addClass('hidden');
         $('#group-mentor').addClass('hidden');
         $('#group-plan').removeClass('hidden');
@@ -555,11 +555,11 @@
     }
     function handleMentorNav(event){
         event.nextElementSibling.classList.remove('hidden');
-        document.getElementById('group-request-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-upload-nav').nextElementSibling.classList.add('hidden');
         document.getElementById('group-plan-nav').nextElementSibling.classList.add('hidden');
         document.getElementById('group-profile-nav').nextElementSibling.classList.add('hidden');
         document.getElementById('group-user-nav').nextElementSibling.classList.add('hidden');
-        $('#group-request').addClass('hidden');
+        $('#group-upload').addClass('hidden');
         $('#group-profile').addClass('hidden');
         $('#group-mentor').removeClass('hidden');
         $('#group-plan').addClass('hidden');
@@ -567,11 +567,11 @@
     }
     function handleAddUserNav(event){
         event.nextElementSibling.classList.remove('hidden');
-        document.getElementById('group-request-nav').nextElementSibling.classList.add('hidden');
+        document.getElementById('group-upload-nav').nextElementSibling.classList.add('hidden');
         document.getElementById('group-plan-nav').nextElementSibling.classList.add('hidden');
         document.getElementById('group-profile-nav').nextElementSibling.classList.add('hidden');
         document.getElementById('group-mentor-nav').nextElementSibling.classList.add('hidden');
-        $('#group-request').addClass('hidden');
+        $('#group-upload').addClass('hidden');
         $('#group-profile').addClass('hidden');
         $('#group-mentor').addClass('hidden');
         $('#group-plan').addClass('hidden');

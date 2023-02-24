@@ -3,7 +3,7 @@ const express = require('express');
 const router = require('express').Router();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const proxy = require('express-request-proxy');
+
 const https = require('https');
 const cors = require('cors');
 const {
@@ -37,6 +37,8 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
 const console = require('console');
+const connectBusboy = require('connect-busboy');
+
 
 const corsOptions = {
     origin: process.env.CORS_ORGIN,
@@ -84,7 +86,7 @@ const config = {
     issuerBaseURL: process.env.ISSUER_BASE_URL,
     secret: process.env.SECRET,
     routes: {
-        callback :'/callback',
+        callback :'/app/callback',
         login: false,
         postLogoutRedirect: '/api/logout'
     }
@@ -209,13 +211,24 @@ const userSchema = new mongoose.Schema({
         task_name: String,
         task_description: String,
         task_type: String,
-        uploads: {
+        task_status : String,
+        task_image : Buffer,
+        upload: {
             type: mongoose.SchemaTypes.ObjectId,
             ref: 'Upload'
         },
         created_at: {
             type: Date,
             default: Date.now
+        }
+    }], 
+    gallery : [{
+        file_name : String,
+        file_type : String,
+        file_buffer : Buffer,
+        file_video : {
+            type : mongoose.SchemaTypes.ObjectId,
+            ref : 'Upload'
         }
     }],
     created_at : {
@@ -426,6 +439,39 @@ const groupSchema = new mongoose.Schema({
             ref: 'Mentor',
         }
     }],
+    tasks: [{
+        task_name: String,
+        task_description: String,
+        task_type: String,
+        task_status : String,
+        task_image : Buffer,
+        upload: {
+            type: mongoose.SchemaTypes.ObjectId,
+            ref: 'Upload'
+        },
+        created_at: {
+            type: Date,
+            default: Date.now
+        },
+        assigned_by : {
+            type : mongoose.SchemaTypes.ObjectId,
+            ref : 'Mentor' 
+        }
+    }],
+    gallery : [{
+        file_name : String,
+        file_type : String,
+        file_buffer : Buffer,
+        file_video : {
+            type : mongoose.SchemaTypes.ObjectId,
+            ref : Upload
+        },
+        created_at : {
+            type : Date,
+            default : Date.now
+        }
+    }],
+    
 });
 const Group = new mongoose.model('Group', groupSchema);
 
@@ -825,7 +871,6 @@ router.get('/api/mylearning/:courseID', requiresAuth(), (req, res) => {
     .exec( (err, data) => {
         if(!err && data!=null){
              async function validateReq(){
-
                 for (var iter = 0; iter < data.enrolled_courses.length; iter++) {
                     if (String(data.enrolled_courses[iter].course._id) === req.params.courseID) {
                         if(data.manual_add===true && data.group_status === false){
@@ -910,6 +955,8 @@ router.get('/api/user/profile',requiresAuth(),(req,res)=>{
         User_Student.findOne({authID : req.oidc.user.sub})
         .populate('current_mentor.mentor')
         .populate('group')
+        .populate('gallery.file_video')
+        .populate('tasks.upload')
         .exec((err,userData)=>{
             if(!err && userData !=null){
                 if (userData.subscribed_plan !='free'){
@@ -945,6 +992,8 @@ router.get('/api/user/profile',requiresAuth(),(req,res)=>{
     } else if (req.query.role == 'group'){
         Group.findOne({authID : req.oidc.user.sub})
         .populate('group_members.member')
+        .populate('gallery.file_video')
+        .populate('tasks.upload')
         .exec((err,data)=>{
             if(data != null && !err ){
                 if(data.plan_initial_status.admin_status){
@@ -966,6 +1015,88 @@ router.get('/api/user/profile',requiresAuth(),(req,res)=>{
     }
 });
 
+router.post('/api/tasks/create',requiresAuth(),(req,res)=>{
+    console.log(req.body);
+    User_Student.updateOne({_id : req.body.student_id},{
+        $push : {
+            tasks : {
+                task_name : req.body.task_name,
+                task_description : req.body.task_description,
+                task_status : 'assigned',
+                task_type : req.body.task_type,
+                assigned_by : req.body.mentor_id,
+            }
+        }
+    },(err)=>{
+        if(!err){
+            res.json({res:true});
+        } else {
+            res.json({res:false});
+        }
+    });
+    
+});
+
+router.post('/api/task/upload',requiresAuth(),async (req,res)=>{
+    if(req.body.type === 'video'){
+        const newUpload = await Video.Uploads.create({
+            cors_orgin : process.env.APP_URL,
+            new_asset_settings : {
+                playback_policy : 'public'
+            }
+        });
+        Upload.create({
+            mux_upload_id : newUpload.id,
+            type : 'task'
+        },(uploadErr,uploadData)=>{
+            if(!uploadErr) {
+                User_Student.updateOne({authID:req.oidc.user.sub, "tasks._id" : req.body.task_id},{
+                    $set : {
+                        "tasks.$.upload" : uploadData._id,
+                        "tasks.$.task_status" : 'submitted' 
+                    }
+                },(userErr)=>{
+                    if(!userErr) {
+                        res.json({res:true, url : newUpload.url});
+                    } else {
+                        res.json({res:false});
+                    }
+                });
+            } else {
+                res.json({ res: false });
+                console.error(uploadErr);
+            }
+        });
+    } else if (req.body.task_data.task_type  === 'image') {
+        req.pipe(req.busboy);
+        const bufs = [];
+        let form_data = new Map();
+        req.busboy.on("field",(fieldName,fieldValue) =>{
+            form_data.set(fieldName,fieldValue);
+        })
+        req.busboy.on('file',(fileName, file, fileInfo, encoding, minitype) => {
+            form_data.set('file-type',minitype);
+            file.on('data', (data) => {
+                if (data != null)
+                    bufs.push(data);
+            })  
+        })
+
+        req.busboy.on('finish', ()=>{
+            console.log(form_data,bufs);
+        })
+
+        // User_Student.updateOne({
+        //     authID : req.oidc.user.sub, "tasks._id" : req.body.task_id   
+        // }, {
+        //     $set : {
+        //         "tasks.$.image" : req.body.image_buffer,
+        //         "tasks.$.task_status" : 'submitted',
+
+        //     }
+        // });
+    }
+});
 
 // ######## LOGIN/SIGN UP METHODS
 router.get('/api/login', (req, res) => {
@@ -1011,7 +1142,7 @@ router.get('/api/profile', requiresAuth(), (req, res) => {
                     if(!saveErr){
                         if (req.query?.role === "mentor") {
                             Mentor.findOne({
-                                authID: req.oidc.user.sub
+                                authID: req.oidc.user.sub,
                             }, (Merr, Mdata) => {
                                 if (Merr || Mdata) {
                                     if(Merr)
@@ -1034,8 +1165,6 @@ router.get('/api/profile', requiresAuth(), (req, res) => {
                                     });
                                 }
                             });
-                            
-                    
                         } else if (req.query?.role === "student") {
                             User_Student.findOne({
                                 authID: req.oidc.user.sub
@@ -1073,6 +1202,9 @@ router.get('/api/profile', requiresAuth(), (req, res) => {
                                                 }
                     
                                             });
+                                        } else {
+                                            res.send("ERROR! Internal Server Error");
+                                            console.log(cusErr);
                                         }
                                     });
                     
@@ -2424,7 +2556,124 @@ router.post('/admin/featured-course',(req,res)=>{
     }
 });
 
-
+router.post('/admin/students/uploads', async (req,res)=>{
+    if(!req.isAuthenticated){
+        res.redirect('/');
+    }else {
+        req.pipe(req.busboy);
+        if(req.query?.type === 'image'){
+            let bufs = [];
+            let form_data = new Map();
+            req.busboy.on('field',(fieldName,fieldValue)=>{
+                form_data.set(fieldName,fieldValue);
+            });
+            req.busboy.on('file',(fileName, file, fileInfo, encoding, minitype)=>{
+                form_data.set('file_name',fileName);
+                form_data.set('mime_type',~minitype);
+                file.on('data',(data)=>{
+                    bufs.push(data);
+                });
+            });
+            req.busboy.on('finish',()=>{
+                if(form_data.get('user_type') === 'student'){
+                    const authID = form_data.get('authID')
+                    User_Student.updateOne({authID : authID},{
+                       $push : {
+                        gallery : {
+                            file_name : form_data.get('file_name'),
+                            file_type : 'image',
+                            file_buffer : Buffer.concat(bufs),
+                        }
+                       } 
+                    },(err)=>{
+                        if(!err){
+                            res.json({res:true});
+                        } else {
+                            res.json({res:false});
+                            console.error(err);
+                        }
+                    });
+                } else if (form_data.get('user_type') === 'group') {
+                    const authID = form_data.get('authID');
+                    Group.updateOne({authID : authID},{
+                        $push : {
+                            gallery : {
+                                file_name : form_data.get('file_name'),
+                                file_type : 'image',
+                                file_buffer : Buffer.concat(bufs),
+                            }
+                            } 
+                    },(err)=>{
+                        if(!err){
+                            res.json({res:true});
+                        } else {
+                            res.json({res:false});
+                            console.error(err);
+                        }
+                    })
+                }
+            });
+        } else if (req.query?.type === 'video') {
+            const newUpload = await Video.Upload.create({
+                cors_orgin : process.env.MUX_WEBHOOK_URL,
+                new_asset_settings : {
+                    playback_policy : 'public'
+                }
+            });
+            Upload.create({
+                mux_upload_id : newUpload.id,
+                type : 'gallery',
+            },(err,uploadData)=>{
+                if(!err) {
+                    let form_data = new Map();
+                    req.busboy.on('field',(fieldName,fieldValue)=>{
+                        form_data.set(fieldName,fieldValue);
+                    });
+                    req.busboy.on('finish',()=>{
+                        const authID = form_data.get('authID');
+                        if(form_data.get('user_type') === 'student'){
+                            User_Student.updateOne({authID : authID},{
+                                $push : {
+                                    gallery : {
+                                        file_name : form_data.get('file_name'),
+                                        file_type : 'video',
+                                        file_video : uploadData._id
+                                    }
+                                }
+                            },(userErr)=>{
+                                if(!userErr){
+                                    res.json({res:true,url : newUpload.url});
+                                }else {
+                                    res.json({res:false});
+                                    console.error(userErr);
+                                }
+                            })
+                        } else if (form_data.get('user_type') === 'group') {
+                            Group.updateOne({authID : authID},{
+                                $push : {
+                                    gallery : {
+                                        file_name : form_data.get('file_name'),
+                                        file_type : 'video',
+                                        file_video : uploadData._id
+                                    }
+                                }
+                            },(groupErr)=>{
+                                if(!groupErr){
+                                    res.json({res:true, url : newUpload.url});
+                                } else {
+                                    res.json({res:false});
+                                    console.error(groupErr);
+                                }
+                            })
+                        }
+                    });
+                }
+            });
+        } else {
+            res.json({res:true});
+        }
+    }
+});
 
 
 // ######## Webhhook
@@ -2442,14 +2691,14 @@ router.post('/mux/webhook', (req, res) => {
             })
         } catch (err) {
             console.error(err);
-        } 
-       
+        }   
     }
 });
 
 app.use('/',router);
+app.use('/app',router);
  
-app.listen(process.env.PORT || 3001, (err) => {
+app.listen(process.env.PORT, (err) => {
     if (!err) {
         console.log("Server Initiated port : 3001");
     }
