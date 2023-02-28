@@ -86,7 +86,7 @@ const config = {
     issuerBaseURL: process.env.ISSUER_BASE_URL,
     secret: process.env.SECRET,
     routes: {
-        callback :'/app/callback',
+        callback :'/callback',
         login: false,
         postLogoutRedirect: '/api/logout'
     }
@@ -2687,7 +2687,6 @@ router.post('/mux/webhook', (req, res) => {
 });
 
 app.use('/',router);
-app.use('/app',router);
 app.listen(process.env.PORT, (err) => {
     if (!err) {
         console.log("Server Initiated port : 3001");
