@@ -38,7 +38,7 @@
     </div>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
-        const callback_url = "http://localhost:3001/app/payment-success?planId=<%=locals.planID%>&roleType=<%=locals.role%>&subscriptionid=<%=locals.subscription_id%>&status=<%=locals?.status%>";
+        const callback_url = "https://guitar-site-87h3i.ondigitalocean.app/app/payment-success?planId=<%=locals.planID%>&roleType=<%=locals.role%>&subscriptionid=<%=locals.subscription_id%>&status=<%=locals?.status%>";
         console.log(callback_url);
         var options = {
             "key": "<%= locals.key %>", 
