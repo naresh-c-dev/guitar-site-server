@@ -459,7 +459,6 @@ const groupSchema = new mongoose.Schema({
         }
     }],
     gallery : [{
-        file_name : String,
         file_type : String,
         file_buffer : Buffer,
         file_video : {
@@ -2560,8 +2559,8 @@ router.post('/admin/students/uploads', async (req,res)=>{
     if(!req.isAuthenticated){
         res.redirect('/');
     }else {
-        req.pipe(req.busboy);
         if(req.query?.type === 'image'){
+            req.pipe(req.busboy);
             let bufs = [];
             let form_data = new Map();
             req.busboy.on('field',(fieldName,fieldValue)=>{
@@ -2569,18 +2568,17 @@ router.post('/admin/students/uploads', async (req,res)=>{
             });
             req.busboy.on('file',(fileName, file, fileInfo, encoding, minitype)=>{
                 form_data.set('file_name',fileName);
-                form_data.set('mime_type',~minitype);
+                form_data.set('mime_type',minitype);
                 file.on('data',(data)=>{
                     bufs.push(data);
                 });
             });
             req.busboy.on('finish',()=>{
                 if(form_data.get('user_type') === 'student'){
-                    const authID = form_data.get('authID')
-                    User_Student.updateOne({authID : authID},{
+                    const id = form_data.get('student_id');
+                    User_Student.updateOne({_id : id},{
                        $push : {
                         gallery : {
-                            file_name : form_data.get('file_name'),
                             file_type : 'image',
                             file_buffer : Buffer.concat(bufs),
                         }
@@ -2594,11 +2592,10 @@ router.post('/admin/students/uploads', async (req,res)=>{
                         }
                     });
                 } else if (form_data.get('user_type') === 'group') {
-                    const authID = form_data.get('authID');
-                    Group.updateOne({authID : authID},{
+                    const id = form_data.get('student_id');
+                    Group.updateOne({_id : id},{
                         $push : {
                             gallery : {
-                                file_name : form_data.get('file_name'),
                                 file_type : 'image',
                                 file_buffer : Buffer.concat(bufs),
                             }
@@ -2614,7 +2611,7 @@ router.post('/admin/students/uploads', async (req,res)=>{
                 }
             });
         } else if (req.query?.type === 'video') {
-            const newUpload = await Video.Upload.create({
+            const newUpload = await Video.Uploads.create({
                 cors_orgin : process.env.MUX_WEBHOOK_URL,
                 new_asset_settings : {
                     playback_policy : 'public'
@@ -2624,18 +2621,12 @@ router.post('/admin/students/uploads', async (req,res)=>{
                 mux_upload_id : newUpload.id,
                 type : 'gallery',
             },(err,uploadData)=>{
-                if(!err) {
-                    let form_data = new Map();
-                    req.busboy.on('field',(fieldName,fieldValue)=>{
-                        form_data.set(fieldName,fieldValue);
-                    });
-                    req.busboy.on('finish',()=>{
-                        const authID = form_data.get('authID');
-                        if(form_data.get('user_type') === 'student'){
-                            User_Student.updateOne({authID : authID},{
+                if(err == null) {
+                        const id = req.body?.student_id;
+                    if(req.body?.user_type === 'student'){
+                            User_Student.updateOne({_id : id},{
                                 $push : {
                                     gallery : {
-                                        file_name : form_data.get('file_name'),
                                         file_type : 'video',
                                         file_video : uploadData._id
                                     }
@@ -2647,12 +2638,11 @@ router.post('/admin/students/uploads', async (req,res)=>{
                                     res.json({res:false});
                                     console.error(userErr);
                                 }
-                            })
-                        } else if (form_data.get('user_type') === 'group') {
-                            Group.updateOne({authID : authID},{
+                            });
+                        } else if (req.body.user_type === 'group') {
+                            Group.updateOne({_id : id},{
                                 $push : {
                                     gallery : {
-                                        file_name : form_data.get('file_name'),
                                         file_type : 'video',
                                         file_video : uploadData._id
                                     }
@@ -2666,15 +2656,16 @@ router.post('/admin/students/uploads', async (req,res)=>{
                                 }
                             })
                         }
-                    });
+                } else {
+                    console.error(err);
+                    res.json(false);
                 }
             });
         } else {
-            res.json({res:true});
+            res.json({res:false});
         }
     }
 });
-
 
 // ######## Webhhook
 router.post('/mux/webhook', (req, res) => {
@@ -2696,7 +2687,7 @@ router.post('/mux/webhook', (req, res) => {
 });
 
 app.use('/',router);
- 
+app.use('/app',router); 
 app.listen(process.env.PORT, (err) => {
     if (!err) {
         console.log("Server Initiated port : 3001");

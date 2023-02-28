@@ -199,27 +199,32 @@
                         </div>
                     </div>
                     <div id="group-upload">
-                        <div class="p-4">
-                            <span class="px-2">Status : </span>
-                            <input type="text" name="request-status">
+                        <div class="p-2 flex w-full">
+                            <span class="px-2 py-2 bg-slate-900 border-2 w-1/2 text-white h-10 rounded-l-md border-slate-900"> Upload Type  </span>
+                            <select name="file_type" class="border-2 w-full pl-2 border-slate-900 rounded-r-md  h-10" >
+                                <option value="image" >Image</option>
+                                <option value="video">Video</option>
+                            </select>
                         </div>
-                        <div id="group-upload-list" class="grid grid-cols-2 gap-2 ">
-                            <div class="flex items-center p-2">
-                                <span
-                                    class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md w-full text-white">Requested Plan
-                                </span>
-                                <input type="text" name="request-plan"
-                                    class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full"
-                                    readonly>
-                            </div>
-                            <div class="flex items-center p-2">
-                                <span
-                                    class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white">Size
-                                </span>
-                                <input type="text" name="request-size"
-                                    class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full"
-                                    readonly>
-                            </div>
+                      
+                        <div class="flex items-center p-2 hidden" id="video-upload">
+                            <span
+                                class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md w-1/2 text-white">Video Upload
+                            </span>
+                            <input type="file" name="video-upload"
+                                class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full"
+                                accept="video/*" >
+                        </div>
+                        <div class="flex items-center p-2 hidden" id="image-upload">
+                            <span
+                                class="px-2 py-1 w-1/2 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white">Image Upload
+                            </span>
+                            <input type="file" name="image-upload"
+                                class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full"
+                                accept="image/*" >
+                        </div>
+                        <div class="flex justify-center w-full">
+                            <input type="button" class="px-3 py-2 hover:scale-105  bg-emerald-400 text-white rounded-md" value="Submit" onclick="submitUpload()" name="submit-upload"/>
                         </div>
                     </div>
                     <div id="group-mentor">
@@ -352,6 +357,19 @@
         </div>
     </div>    
 <script>
+    $("select[name=file_type]").change((element)=>{
+        let selected_item = element.target.value;
+        if(selected_item === "image"){
+            $("#image-upload").removeClass("hidden");
+            $("#video-upload").addClass("hidden");
+        } else {
+            $("#image-upload").addClass("hidden");
+            $("#video-upload").removeClass("hidden");
+        }
+    });
+
+    
+    
    $("#groups").addClass("bg-emerald-400");
    $.getJSON('/app/admin/get/mentor',(mentorsData,mentorErr)=>{
         if(mentorErr === "success" && mentorsData.res){
@@ -363,7 +381,6 @@
         } else {
             handleResponse(false,'Something Went Wrong, Try Again later');
         }
-        
     });
     $.getJSON('/app/admin/get/users',(data,err)=>{
         if (data.res && err==='success'){
@@ -467,7 +484,7 @@
                     $('#group-members-list-body').empty();
                     $('#group-members-list').removeClass('hidden');
                     data.group_data?.group_members.forEach(group_member=>{
-                        //console.log(member.member.email);
+      
                         const tr = $('<tr></tr>')//.attr('id',data.group_data?.group_members[iter]?.member._id);
                         const email = $('<td></td>').text(group_member.member.email).appendTo(tr);
                         const authID = $('<td></td>').text(group_member.member.authID).appendTo(tr);
@@ -698,5 +715,67 @@
             $('#loader').addClass('hidden');
         });
     }
+
+    function submitUpload(){
+        const group_id = $('input[name=group-id]').val();
+        $('input[name=submit-upload]').val('...');
+        const module_type = $("select[name=file_type]").find(":selected").val();
+        const video = document.querySelector("input[name=video-upload]");
+        if (module_type === "video"){
+            
+            $.ajax({
+                url : '/admin/students/uploads?type=video',
+                type : 'POST',
+                data : { module_type : 'video', user_type : 'group',student_id : group_id},
+                headers : {ContentType : "application/x-www-form-urlencoded"},
+                success : (data)=>{
+                
+                    const upload = UpChunk.createUpload({
+                        endpoint:data.url,
+                        file:video.files[0],
+                        chunkSize:30720
+                    });
+                    upload.on("error",err=>{
+                        console.log(err.detail);
+                        handleResponse(false,'Something Went wrong! Try again later.');
+                    });
+                    upload.on("progress",progress =>{
+                        $("input[name=submit-upload]").val(parseInt(progress.detail));
+                    });
+                    upload.on("success",()=>{
+                        $("input[name=status]").val("Uploaded");
+                        setTimeout(()=>{event.classList.remove('hidden'),uploader.addClass("hidden")},3000)
+                    });
+                }
+            });
+        } else {
+            var data = new FormData();
+            const image_file = document.querySelector("input[name=image-upload]");
+            data.append('file',image_file.files[0]);
+            data.append('user_type' , 'group');
+            data.append('module_type','image');
+            data.append('student_id',group_id);
+            $.ajax({
+                url : '/admin/students/uploads?type=image',
+                type : 'POST',
+                data : data,
+                enctype : 'multipart/form-data',
+                processData : false,
+                contentType : false,
+                cache : false,
+                success : (res)=>{
+                            handleResponse(true,"Successfully Uploaded")
+                        },
+                error : (e) => {
+                    console.log();
+                    handleResponse(false,'Something Went wrong! Try again later.');
+                }        
+            });
+        }
+        
+    }
+    
+
+
 </script>
 <%- include('partials/footer')%>

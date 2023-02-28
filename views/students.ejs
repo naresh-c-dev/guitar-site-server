@@ -188,7 +188,37 @@
                                 </select>
                                 <span class="px-2 py-1 bg-emerald-400  text-white rounded-r-lg w-1/3 border-2 border-emerald-400 hover:bg-slate-900 hover:scale-105 cursor-pointer" onclick="assignMentor()">Assign</span>
                             </div>
+                            <div id="student-upload" class="flex flex-col w-full mt-2" >
+                                <div class="p-2 flex ">
+                                    <span class="px-2 py-2 bg-slate-900 border-2 text-white h-10 rounded-l-md border-slate-900"> Upload Type  </span>
+                                    <select name="file_type" class="border-2 w-full pl-2 border-slate-900 rounded-r-md  h-10" >
+                                        <option value="image" >Image</option>
+                                        <option value="video">Video</option>
+                                    </select>
+                                </div>
+                              
+                                <div class="flex items-center p-2 hidden" id="video-upload">
+                                    <span
+                                        class="px-2 py-1 bg-slate-900 border-2 border-slate-900 rounded-l-md w-1/2 text-white">Video Upload
+                                    </span>
+                                    <input type="file" name="video-upload"
+                                        class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full"
+                                        accept="video/*" >
+                                </div>
+                                <div class="flex items-center p-2 hidden" id="image-upload">
+                                    <span
+                                        class="px-2 py-1 w-1/2 bg-slate-900 border-2 border-slate-900 rounded-l-md text-white">Image Upload
+                                    </span>
+                                    <input type="file" name="image-upload"
+                                        class="border-2 border-slate-900 px-2 py-1 rounded-r-md focus:outline-none w-full"
+                                        accept="image/*" >
+                                </div>
+                                <div class="flex justify-center ">
+                                    <input type="button" class="px-3 py-2 hover:scale-105  bg-emerald-400 text-white rounded-md" value="Submit" onclick="submitUpload()" name="upload-status"/>
+                                </div>
+                            </div>
                         </div>
+                        
                     </div>
                 </form>
             </div>
@@ -196,6 +226,16 @@
     </div>
 </div>
 <script>
+    $("select[name=file_type]").change((element)=>{
+        let selected_item = element.target.value;
+        if(selected_item === "image"){
+            $("#image-upload").removeClass("hidden");
+            $("#video-upload").addClass("hidden");
+        } else {
+            $("#image-upload").addClass("hidden");
+            $("#video-upload").removeClass("hidden");
+        }
+    });
     const homeNav = $("#students");
     homeNav.addClass("bg-emerald-400");
     $.getJSON('/app/admin/get/mentor',(mentorsData,mentorErr)=>{
@@ -323,5 +363,75 @@
             }
         })
     }
+
+    function submitUpload(event){
+        $("input[name=upload-status]").val('...');
+        const module_type = $("select[name=file_type]").find(":selected").val();
+        if (module_type === "video"){
+            
+            const student_id = $("input[name=student-id]").val();
+            const video = document.querySelector("input[name=video-upload]");
+            const data = {
+                'user_type' : 'student',
+                'student_id':student_id,
+                'module_type':'video'
+            }
+            const headers = {
+                ContentType : "application/x-www-form-urlencoded",
+            }
+            $.ajax({
+                url : '/admin/students/uploads?type=video',
+                type : 'POST',
+                data : data ,
+                headers : headers,
+                success : (resData)=>{
+
+                            const upload = UpChunk.createUpload({
+                                endpoint:resData.url,
+                                file:video.files[0],
+                                chunkSize:30720
+                            });
+                            upload.on("error",err=>{
+                                console.log(err.detail);
+                                alert("Error Occured");
+                            });
+                            upload.on("progress",progress =>{
+                                $("input[name=upload-status]").val(parseInt(progress.detail));
+                            });
+                            upload.on("success",()=>{
+                                $("input[name=upload-status]").val("Uploaded");
+                                setTimeout(()=>{event.target.value = 'Submit'},3000);
+                            });
+                    },
+                error : (e) =>{
+                        console.log(e);
+                    }
+                });
+        } else {
+            var data = new FormData();
+            const student_id = $("input[name=student-id]").val();
+            const image_file = document.querySelector("input[name=image-upload]");
+            data.append('file',image_file.files[0]);
+            data.append('user_type' , 'student');
+            data.append('student_id',student_id);
+            data.append('module_type','image');
+            $.ajax({
+                url : '/admin/students/uploads?type=image',
+                type : 'POST',
+                data : data,
+                enctype : 'multipart/form-data',
+                processData : false,
+                contentType : false,
+                cache : false,
+                success : (res)=>{
+                            alert("Successfully Uploaded");
+                        },
+                error : (e) => {
+                    console.log(e);
+                    alert("Something went wrong");
+                }        
+            });
+        }
+        }
 </script>
 <%- include('partials/footer')%>
