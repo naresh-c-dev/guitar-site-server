@@ -1037,9 +1037,9 @@ router.post('/api/tasks/create',requiresAuth(),(req,res)=>{
 });
 
 router.post('/api/task/upload',requiresAuth(),async (req,res)=>{
-    if(req.body.type === 'video'){
+    if(req.query.type === 'video'){
         const newUpload = await Video.Uploads.create({
-            cors_orgin : process.env.SERVER_DOMAIN,
+            cors_orgin : process.env.MUX_WEBHOOK_URL,
             new_asset_settings : {
                 playback_policy : 'public'
             }
@@ -1066,7 +1066,7 @@ router.post('/api/task/upload',requiresAuth(),async (req,res)=>{
                 console.error(uploadErr);
             }
         });
-    } else if (req.body.task_data.task_type  === 'image') {
+    } else if (req.query.type  === 'image') {
         req.pipe(req.busboy);
         const bufs = [];
         let form_data = new Map();
@@ -1080,20 +1080,26 @@ router.post('/api/task/upload',requiresAuth(),async (req,res)=>{
                     bufs.push(data);
             })  
         })
-
         req.busboy.on('finish', ()=>{
-            console.log(form_data,bufs);
+            User_Student.updateOne({
+                authID : req.oidc.user.sub, "tasks._id" : form_data.get('task_id')   
+            }, {
+                $set : {
+                    "tasks.$.task_image" : Buffer.concat(bufs),
+                    "tasks.$.task_status" : 'submitted',
+    
+                }
+            },(saveErr)=>{
+                if(!saveErr) 
+                    res.json({res:true});
+                else {
+                    res.json({res:false});
+                    console.log(saveErr);
+                }
+            });
         })
 
-        // User_Student.updateOne({
-        //     authID : req.oidc.user.sub, "tasks._id" : req.body.task_id   
-        // }, {
-        //     $set : {
-        //         "tasks.$.image" : req.body.image_buffer,
-        //         "tasks.$.task_status" : 'submitted',
-
-        //     }
-        // });
+        
     }
 });
 
@@ -2612,7 +2618,7 @@ router.post('/admin/students/uploads', async (req,res)=>{
             });
         } else if (req.query?.type === 'video') {
             const newUpload = await Video.Uploads.create({
-                cors_orgin : process.env.SERVER_DOMAIN,
+                cors_orgin : process.env.MUX_WEBHOOK_URL,
                 new_asset_settings : {
                     playback_policy : 'public'
                 }
