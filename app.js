@@ -1039,7 +1039,7 @@ router.post('/api/tasks/create',requiresAuth(),(req,res)=>{
 router.post('/api/task/upload',requiresAuth(),async (req,res)=>{
     if(req.body.type === 'video'){
         const newUpload = await Video.Uploads.create({
-            cors_orgin : process.env.APP_URL,
+            cors_orgin : process.env.SERVER_DOMAIN,
             new_asset_settings : {
                 playback_policy : 'public'
             }
@@ -2612,7 +2612,7 @@ router.post('/admin/students/uploads', async (req,res)=>{
             });
         } else if (req.query?.type === 'video') {
             const newUpload = await Video.Uploads.create({
-                cors_orgin : process.env.MUX_WEBHOOK_URL,
+                cors_orgin : process.env.SERVER_DOMAIN,
                 new_asset_settings : {
                     playback_policy : 'public'
                 }
