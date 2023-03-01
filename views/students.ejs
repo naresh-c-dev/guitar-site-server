@@ -378,38 +378,17 @@
             }
             const headers = {
                 ContentType : "application/x-www-form-urlencoded",
+                "Access-Control-Allow-Headers": '*',
+
             }
-            // $.ajax({
-            //     url : '/admin/students/uploads?type=video',
-            //     type : 'POST',
-            //     data : data ,
-            //     headers : headers,
-            //     crossDomain : true,
-            //     success : (resData)=>{
-            //                 const upload = UpChunk.createUpload({
-            //                     endpoint:resData.url,
-            //                     file:video.files[0],
-            //                     chunkSize:30720,
-            //                 });
-            //                 upload.on("error",err=>{
-            //                     console.log(err.detail);
-            //                     alert("Error Occured");
-            //                 });
-            //                 upload.on("progress",progress =>{
-            //                     $("input[name=upload-status]").val(parseInt(progress.detail));
-            //                 });
-            //                 upload.on("success",()=>{
-            //                     $("input[name=upload-status]").val("Uploaded");
-            //                     setTimeout(()=>{event.target.value = 'Submit'},3000);
-            //                 });
-            //         },
-            //     error : (e) =>{
-            //             console.log(e);
-            //         }
-            //     });
-            $.post('/admin/students/uploads?type=video',data,(resData,resErr)=>{
-                if(resErr==="success"){
-                    const upload = UpChunk.createUpload({
+            $.ajax({
+                url : '/admin/students/uploads?type=video',
+                type : 'POST',
+                data : data ,
+                headers : headers,
+                crossDomain : true,
+                success : (resData)=>{
+                            const upload = UpChunk.createUpload({
                                 endpoint:resData.url,
                                 file:video.files[0],
                                 chunkSize:30720,
@@ -424,9 +403,32 @@
                             upload.on("success",()=>{
                                 $("input[name=upload-status]").val("Uploaded");
                                 setTimeout(()=>{event.target.value = 'Submit'},3000);
-                            });   
-                }
-            })
+                            });
+                    },
+                error : (e) =>{
+                        console.log(e);
+                    }
+                });
+            // $.post('/admin/students/uploads?type=video',data,(resData,resErr)=>{
+            //     if(resErr==="success"){
+            //         const upload = UpChunk.createUpload({
+            //                     endpoint:resData.url,
+            //                     file:video.files[0],
+            //                     chunkSize:30720,
+            //                 });
+            //                 upload.on("error",err=>{
+            //                     console.log(err.detail);
+            //                     alert("Error Occured");
+            //                 });
+            //                 upload.on("progress",progress =>{
+            //                     $("input[name=upload-status]").val(parseInt(progress.detail));
+            //                 });
+            //                 upload.on("success",()=>{
+            //                     $("input[name=upload-status]").val("Uploaded");
+            //                     setTimeout(()=>{event.target.value = 'Submit'},3000);
+            //                 });   
+            //     }
+            // })
         } else {
             var data = new FormData();
             const student_id = $("input[name=student-id]").val();
