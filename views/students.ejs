@@ -384,12 +384,12 @@
                 type : 'POST',
                 data : data ,
                 headers : headers,
+                crossDomain : true,
                 success : (resData)=>{
-
                             const upload = UpChunk.createUpload({
                                 endpoint:resData.url,
                                 file:video.files[0],
-                                chunkSize:30720
+                                chunkSize:30720,
                             });
                             upload.on("error",err=>{
                                 console.log(err.detail);
